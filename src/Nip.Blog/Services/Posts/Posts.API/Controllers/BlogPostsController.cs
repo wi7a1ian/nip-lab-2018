@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Nip.Blog.Services.Posts.API.Data;
+using Nip.Blog.Services.Posts.API.Models;
 
 namespace Nip.Blog.Services.Posts.API.Controllers
 {
@@ -10,36 +12,88 @@ namespace Nip.Blog.Services.Posts.API.Controllers
     [ApiController]
     public class BlogPostsController : ControllerBase
     {
-        // GET api/values
+        private readonly BlogPostContext _postsDbContext;
+
+        public BlogPostsController(BlogPostContext postsDbContext)
+        {
+            _postsDbContext = postsDbContext;
+
+            if (_postsDbContext.BlogPosts.Count() == 0)
+            {
+                _postsDbContext.BlogPosts.Add(new BlogPost { Title = "Item1" });
+                _postsDbContext.SaveChanges();
+            }
+        }
+
+        // GET api/blogposts
         [HttpGet]
-        public ActionResult<IEnumerable<string>> Get()
+        public ActionResult<IEnumerable<BlogPost>> Get()
         {
-            return new string[] { "value1", "value2" };
+            return Ok(_postsDbContext.BlogPosts.ToList());
         }
 
-        // GET api/values/5
-        [HttpGet("{id}")]
-        public ActionResult<string> Get(int id)
+        // GET api/blogposts/5
+        [HttpGet("{id}", Name = "GetBlogPost")]
+        public ActionResult<BlogPost> Get(long id)
         {
-            return "value";
+            var item = _postsDbContext.BlogPosts.Find(id);
+            if (item == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                return Ok(item);
+            }
         }
 
-        // POST api/values
+        // POST api/blogposts
         [HttpPost]
-        public void Post([FromBody] string value)
+        public IActionResult Post([FromBody] BlogPost post)
         {
+            _postsDbContext.BlogPosts.Add(post);
+            _postsDbContext.SaveChanges();
+
+            return CreatedAtRoute("GetBlogPost", new { id = post.Id }, post);
         }
 
-        // PUT api/values/5
+        // PUT api/blogposts/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public IActionResult Put(long id, [FromBody] BlogPost updatedPost)
         {
+            var post = _postsDbContext.BlogPosts.Find(id);
+            if (post == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                post.Title = updatedPost.Title;
+                post.Description = updatedPost.Description;
+
+                _postsDbContext.BlogPosts.Update(post);
+                _postsDbContext.SaveChanges();
+
+                return NoContent();
+            }
         }
 
-        // DELETE api/values/5
+        // DELETE api/blogposts/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public IActionResult Delete(long id)
         {
+            var post = _postsDbContext.BlogPosts.Find(id);
+            if (post == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                _postsDbContext.BlogPosts.Remove(post);
+                _postsDbContext.SaveChanges();
+
+                return NoContent();
+            }
         }
     }
 }
