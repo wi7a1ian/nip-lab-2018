@@ -20,17 +20,21 @@ namespace Nip.Blog.Services.Posts.API.Controllers
         }
 
         // GET api/blogposts
+        // GET api/blogposts/all
+        // GET api/blogposts/getall
         [HttpGet]
-        public ActionResult<IEnumerable<BlogPost>> Get()
+        [HttpGet("all")] // Note: multiple routing
+        [HttpGet("GetAll")]
+        public async Task<ActionResult<IEnumerable<BlogPost>>> Get()
         {
-            return Ok(_postsDbContext.BlogPosts.ToList());
+            return Ok(await _postsDbContext.BlogPosts.ToAsyncEnumerable().ToList());
         }
 
         // GET api/blogposts/5
         [HttpGet("{id}", Name = "GetBlogPost")]
-        public ActionResult<BlogPost> Get(long id)
+        public async Task<ActionResult<BlogPost>> Get(long id)
         {
-            var item = _postsDbContext.BlogPosts.Find(id);
+            var item = await _postsDbContext.BlogPosts.FindAsync(id);
             if (item == null)
             {
                 return NotFound();
@@ -43,19 +47,19 @@ namespace Nip.Blog.Services.Posts.API.Controllers
 
         // POST api/blogposts
         [HttpPost]
-        public IActionResult Post([FromBody] BlogPost post)
+        public async Task<IActionResult> Post([FromBody] BlogPost post)
         {
-            _postsDbContext.BlogPosts.Add(post);
-            _postsDbContext.SaveChanges();
+            await _postsDbContext.BlogPosts.AddAsync(post);
+            await _postsDbContext.SaveChangesAsync();
 
             return CreatedAtRoute("GetBlogPost", new { id = post.Id }, post);
         }
 
         // PUT api/blogposts/5
         [HttpPut("{id}")]
-        public IActionResult Put(long id, [FromBody] BlogPost updatedPost)
+        public async Task<IActionResult> Put(long id, [FromBody] BlogPost updatedPost)
         {
-            var post = _postsDbContext.BlogPosts.Find(id);
+            var post = await _postsDbContext.BlogPosts.FindAsync(id);
             if (post == null)
             {
                 return NotFound();
@@ -66,7 +70,7 @@ namespace Nip.Blog.Services.Posts.API.Controllers
                 post.Description = updatedPost.Description;
 
                 _postsDbContext.BlogPosts.Update(post);
-                _postsDbContext.SaveChanges();
+                await _postsDbContext.SaveChangesAsync();
 
                 return NoContent();
             }
@@ -74,9 +78,9 @@ namespace Nip.Blog.Services.Posts.API.Controllers
 
         // DELETE api/blogposts/5
         [HttpDelete("{id}")]
-        public IActionResult Delete(long id)
+        public async Task<IActionResult> Delete(long id)
         {
-            var post = _postsDbContext.BlogPosts.Find(id);
+            var post = await _postsDbContext.BlogPosts.FindAsync(id);
             if (post == null)
             {
                 return NotFound();
@@ -84,7 +88,7 @@ namespace Nip.Blog.Services.Posts.API.Controllers
             else
             {
                 _postsDbContext.BlogPosts.Remove(post);
-                _postsDbContext.SaveChanges();
+                await _postsDbContext.SaveChangesAsync();
 
                 return NoContent();
             }
