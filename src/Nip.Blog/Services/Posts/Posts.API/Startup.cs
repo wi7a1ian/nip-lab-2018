@@ -33,7 +33,24 @@ namespace Nip.Blog.Services.Posts.API
 
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new Info { Title = "Blog Posts API", Version = "v1" });
+                c.SwaggerDoc("v1", new Info
+                {
+                    Version = "v1",
+                    Title = "Blog Posts API",
+                    Description = "RESTful repository allowing basic CRUD operations on blog post resource.",
+                    TermsOfService = "None",
+                    Contact = new Contact
+                    {
+                        Name = "Rick Roll",
+                        Email = string.Empty,
+                        Url = "https://github.com/wi7a1ian"
+                    },
+                    License = new License
+                    {
+                        Name = "Use under MIT license",
+                        Url = "https://github.com/wi7a1ian/nip-lab-2018/blob/master/LICENSE.md"
+                    }
+                });
             });
         }
 
