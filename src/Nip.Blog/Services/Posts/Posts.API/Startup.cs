@@ -44,6 +44,7 @@ namespace Nip.Blog.Services.Posts.API
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Blog Posts API v1");
+                c.RoutePrefix = string.Empty; // serve the Swagger UI at the app's root
             });
 
             if (env.IsDevelopment())
