@@ -17,12 +17,6 @@ namespace Nip.Blog.Services.Posts.API.Controllers
         public BlogPostsController(BlogPostContext postsDbContext)
         {
             _postsDbContext = postsDbContext;
-
-            if (_postsDbContext.BlogPosts.Count() == 0)
-            {
-                _postsDbContext.BlogPosts.Add(new BlogPost { Title = "Item1" });
-                _postsDbContext.SaveChanges();
-            }
         }
 
         // GET api/blogposts
