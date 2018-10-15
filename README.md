@@ -100,7 +100,7 @@
 			...
 		```
 		*Note: The controller's constructor uses Dependency Injection to inject the database context (BlogPostsContext) into the controller.*
-	1. Allow rerieval of all the blog posts. Update `BlogPostsController.cs`
+	1. Allow retrieval of all the blog posts. Update `BlogPostsController.cs`
 		```csharp
 		// GET api/blogposts
 		[HttpGet]
@@ -215,7 +215,7 @@
 			return CreatedAtRoute("GetBlogPost", new { id = post.Id }, post);
 		}
 		```
-	1. All `GET/POST/PUT/DELETE` action methods shoudl be `async`.
+	1. All `GET/POST/PUT/DELETE` action methods should be `async`.
 - Using Postman:
 	1. Confirm nothing is broken by rerunning previous `POST/GET/PUT/DELETE` (preferably in that order) requests.
 	
@@ -286,9 +286,19 @@
 	1. Open Swagger UI and check if HTTP response codes are now listed.
 
 # TODO
-- Logging
-- EF Core
-- Automapper
+- Part 1
+	- Logging
+	- Custom response/error page
+- Part 2
+	- Model validation using FluentValidation
+	- Automapper (DTO and Entity be different, i.e: ModificationTime, ModificationAuthor?)
+	- EF Core
+		- Code first
+		- Migrations
+	- Advanced
+		- filtering / sorting / paging
+		- authentication and authorization using Identity (separate web API) either Access tokens (JWT) or reference tokens
+		- separate helper web API with its own NoSQL database for audits
 - [HttpGet("products")] [HttpGet("{id}/comments")] [HttpGet("posts/{id}")] 
 - default HTTP 400 response is disabled if:
 	```
