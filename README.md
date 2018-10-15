@@ -307,6 +307,9 @@
 		options.SuppressModelStateInvalidFilter = true;
 	});
 	```
+- PaginatedItemsModel<TEntity>
+- IEnumerable<TEntity> vs IQueryable<TEntity>
+- IExceptionFilter
 - Cors
 - Test using older VS 2017 ( < v15.3)
 - Try the same using VS Code
