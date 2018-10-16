@@ -286,12 +286,14 @@
 	1. Open Swagger UI and check if HTTP response codes are now listed.
 
 # TODO
+- ASAP: make it work for VS Code
 - Part 1
 	- Logging
 	- Custom response/error page
 - Part 2
 	- Model validation using FluentValidation
 	- Automapper (DTO and Entity be different, i.e: ModificationTime, ModificationAuthor?)
+		- It is never a good idea to directly return Entity objects. You always want to use DTO (Data Transfer Objects) that correspond to a particular view for your UI / client.
 	- EF Core
 		- Code first
 		- Migrations
