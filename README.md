@@ -7,6 +7,9 @@
     - .NET Core cross-platform development
   - [Visual Studio Code](https://code.visualstudio.com/)
     - Plugin: C# for Visual Studio Code
+      - Use [version 1.15.2](https://github.com/OmniSharp/omnisharp-vscode/releases/download/v1.15.2/csharp-1.15.2.vsix) since there is a bug when older version of VS is installed alongside. 
+      	1. Download that vsix file, go to VS Code > Extensions > ... > Install from VSIX...
+	2. VS Code > Extensions > ... > Disable Auto Updating Extensions
     - [.NET Core 2.1 SDK or later (if stable!)](https://www.microsoft.com/net/download/all)
 - [Postman](https://www.getpostman.com/)
 
@@ -64,7 +67,7 @@
 ### Exercise set #1 - in-memory store & basic CRUD
 - API versioning is important for consumers, thus change routing for our endpoint from `/api/blogposts` to `/api/v1/blogposts`. Validate using Postman that endpoints still work.
 - Using Visual Studio
-	1. Add new model BlogPost under Models folder (`./Models/BlogPost.cs`): right-click the project, select Add > New Folder and name it Models, then right-click the Models folder and select Add > Class. Name the class BlogPost and click Add. Update the model with the following properties/fields: 
+	1. Add new model BlogPost under Models folder (`./Models/BlogPost.cs`): right-click the project, select Add > New Folder and name it Models, then right-click the Models folder and select Add > Class (or New File when using VS Code). Name the class BlogPost and click Add. Update the model with the following properties/fields: 
 		```csharp
 		namespace Nip.Blog.Services.Posts.API.Models
 		{
