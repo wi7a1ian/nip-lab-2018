@@ -1,10 +1,13 @@
 # nip-lab-2018
 
 # Prerequisites
-- [Visual Studio 2017 version 15.7](https://visualstudio.microsoft.com/downloads/) or later with:
-  - ASP.NET and web development
-  - .NET Core cross-platform development
-    - .NET Core 2.1 SDK or later
+- Either one of those:
+  - [Visual Studio 2017 version 15.7](https://visualstudio.microsoft.com/downloads/) or later with:
+    - ASP.NET and web development
+    - .NET Core cross-platform development
+  - [Visual Studio Code](https://code.visualstudio.com/)
+    - Plugin: C# for Visual Studio Code
+    - [.NET Core 2.1 SDK or later (if stable!)](https://www.microsoft.com/net/download/all)
 - [Postman](https://www.getpostman.com/)
 
 # API Requirements (RESTful)
@@ -37,8 +40,21 @@
 	1. Right click the `ValuesController.cs` and rename it to `BlogPostsController.cs`
 	1. At the toolbar switch the debug target from `IIS Express` to `Nip.Blog.Services.Posts.API` and run it. *( the reason behind this is that we want to use .net core runtime to run the server for us and not the IIS )*
 	1. Before the debug starts VS should ask you for permission to add "fake" SSL certificate to the cert store.
-	1. *(optional) stop the debugging, you can also start the server by either running `dotnet run` when in project folder, or `dotnet <name>.dll` when in /bin/Debug folder*
-	1. Two app URLs should be available at this point: secure `https://localhost:5001` if SSL is enabled; unsecure `http://localhost:5000` that redirects to secured URL if SSL is enabled, otherwise just works fine. Note: If someone did choose to use IIS instead, the ports should be different but the app should behave the same.
+- *(optional)* Using Visual Studio Code
+	1. Create `Services/Posts` subfolder, navigate there and run commands:
+		```
+		dotnet new webapi -o Posts.API
+		dotnet dev-certs https --trust
+		code Posts.API
+		```
+	1. Accept any popups that appear (like `Restore`)
+	1. Right click the `ValuesController.cs` and rename it to `BlogPostsController.cs`
+	1. Start the server by either 
+		- Running the Debug (F5)
+		- Running `dotnet run` from VS Code Terminal
+		- Running `dotnet run` when in project folder
+		- Running `dotnet Posts.API.dll` when in /bin/Debug folder
+- Two app URLs should be available at this point: secure `https://localhost:5001` if SSL is enabled; unsecure `http://localhost:5000` that redirects to secured URL if SSL is enabled, otherwise just works fine. *Note: If someone did choose to use IIS instead, the ports should be different but the app should behave the same.*
 	1. Open web browser and navigate to `https://localhost:5001/api/blogposts`
 - Using Postman
 	1. Navigate to Settings and turn off "SSL certificate verification"
