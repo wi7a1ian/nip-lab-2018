@@ -10,7 +10,7 @@ using Nip.Blog.Services.Posts.API.Exceptions;
 
 namespace Posts.API.Controllers
 {
-    [Route("api/v1/[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class ErrorController : ControllerBase
     {
@@ -23,8 +23,8 @@ namespace Posts.API.Controllers
             _environment = env;
         }
 
-        [HttpGet]
         [AllowAnonymous]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public IActionResult Index()
         {
             _logger.LogWarning("Unhandled exception detected");
