@@ -308,7 +308,7 @@
 - Using Visual Studio:
 	1. Update `Startup.cs` and configure the HTTP request pipeline to redirect to `/api/v1/Error` controller whenever unhandled exception happens. This should work only if not in development mode, since in development we should get dev exception page with all sort of details (especially when queried with "?throw=true").
 		```csharp
-		app.UseExceptionHandler("/api/v1/Error");
+		app.UseExceptionHandler("/api/Error");
 		```
 	1. Create new controller named `ErrorController`. Setup `Index()` method that return status 500 and display friendly message in JSON format. Hint:
 		```json
@@ -327,3 +327,38 @@
 	1. Query it with Postman and confirm you get 500 status code with JSON body.
 	1. *(optional) Try returning exception details and URI path from where it was issued. Google `HttpContext.Features.Get<IExceptionHandlerPathFeature>()`...*
 	1. Remove the exception from faked method.
+### Exercise set #5 - Logging
+- Few hints about logging
+	- Never log any sensitive data (i.: usernames) at any level that goes to production. Trace/Debug level is less restrictive as long as it is only for development environment and does not involve "live" data.
+	- **Trace** - allow developer to track program execution, like begin/end of a method, bigger steps in algorithm, loops.
+	- **Debug** - strictly for debugging purposes, like reading variable/model values, list sizes, consitions.
+	- **Info** - usually contains information available in production so it is visible by OPS, used to track calls between "systems", like querying another api, processing a request, bigger steps in algorithms.
+	- **Warn** - errors or unexpected behaviors which can be handled by application, like catched exceptions, invalid arguments.
+	- **Error** - scenarios that are unrecoverable but can perform another work, like generic error handler.
+	- **Critical/Fatal** - you should terminate right after this one... like no disk space, no space on the heap, lack of network connection.
+- Using Visual Studio:
+	1. Update `Program.cs` and append to the builder pipeline those lines:
+		```csharp
+		.ConfigureLogging(logging =>
+                {
+                    logging.ClearProviders();
+                    logging.AddConsole();
+                });
+		```
+	1. Using DI feed `Startup`, `BlogPostsController` and `ErrorController` classes with either `ILogger<T>` or `ILoggerFactory`.
+	1. Apply appropriate logging to each of those classes with appropriate levels. Example:
+		```csharp
+		public async Task<IActionResult> Put(long id, [FromBody] BlogPost updatedPost)
+		{
+			_logger.LogInformation("Updating post {0}", id);
+			_logger.LogDebug("Received post id {0} with new title: {1}'", id, updatedPost.Title);
+
+			var post = await _postsDbContext.BlogPosts.FindAsync(id);
+			if (post == null)
+			{
+				_logger.LogWarning("Post {0} not found", id);
+				return NotFound();
+			}
+			...
+		```
+	1. *(optional) Try adding a provider that support writing logs to a file. Google `logging.AddFile(...);`*
