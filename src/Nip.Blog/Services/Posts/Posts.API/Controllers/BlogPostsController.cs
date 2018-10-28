@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Nip.Blog.Services.Posts.API.Data;
+using Nip.Blog.Services.Posts.API.Exceptions;
 using Nip.Blog.Services.Posts.API.Models;
 
 namespace Nip.Blog.Services.Posts.API.Controllers
@@ -54,6 +55,16 @@ namespace Nip.Blog.Services.Posts.API.Controllers
         [ProducesResponseType(400)]
         public async Task<IActionResult> Post([FromBody] BlogPost post)
         {
+            var isTitleAlreadyExisting = await _postsDbContext.BlogPosts
+                .Where(x => x.Title.Equals(post.Title, StringComparison.InvariantCultureIgnoreCase))
+                .ToAsyncEnumerable().Any();
+
+            // Note: below code exist solely to show how global exception handler works
+            if (isTitleAlreadyExisting)
+            {
+                throw new BlogPostsDomainException($"Blog post with such title already exist: {post.Title}");
+            }
+
             await _postsDbContext.BlogPosts.AddAsync(post);
             await _postsDbContext.SaveChangesAsync();
 
@@ -74,13 +85,24 @@ namespace Nip.Blog.Services.Posts.API.Controllers
             }
             else
             {
-                post.Title = updatedPost.Title;
-                post.Description = updatedPost.Description;
+                var isSuchTitleAlreadyExisting = await _postsDbContext.BlogPosts
+                    .Where(x => x.Title.Equals(updatedPost.Title, StringComparison.InvariantCultureIgnoreCase) && x.Id != id)
+                    .ToAsyncEnumerable().Any();
 
-                _postsDbContext.BlogPosts.Update(post);
-                await _postsDbContext.SaveChangesAsync();
+                if (isSuchTitleAlreadyExisting)
+                {
+                    return BadRequest(new { Title = new string[] { "Blog post with same title already exist" } });
+                }
+                else
+                {
+                    post.Title = updatedPost.Title;
+                    post.Description = updatedPost.Description;
 
-                return NoContent();
+                    _postsDbContext.BlogPosts.Update(post);
+                    await _postsDbContext.SaveChangesAsync();
+
+                    return NoContent();
+                }
             }
         }
 
