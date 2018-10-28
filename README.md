@@ -303,34 +303,27 @@
 		```
 - Using browser:
 	1. Open Swagger UI and check if HTTP response codes are now listed.
-
-# TODO
-- ASAP: make it work for VS Code
-- Part 1
-	- Logging
-	- Custom response/error page
-- Part 2
-	- Model validation using FluentValidation
-	- Automapper (DTO and Entity be different, i.e: ModificationTime, ModificationAuthor?)
-		- It is never a good idea to directly return Entity objects. You always want to use DTO (Data Transfer Objects) that correspond to a particular view for your UI / client.
-	- EF Core
-		- Code first
-		- Migrations
-	- Advanced
-		- filtering / sorting / paging
-		- authentication and authorization using Identity (separate web API) either Access tokens (JWT) or reference tokens
-		- separate helper web API with its own NoSQL database for audits
-- [HttpGet("products")] [HttpGet("{id}/comments")] [HttpGet("posts/{id}")] 
-- default HTTP 400 response is disabled if:
-	```
-	services.Configure<ApiBehaviorOptions>(options =>
-	{
-		options.SuppressModelStateInvalidFilter = true;
-	});
-	```
-- PaginatedItemsModel<TEntity>
-- IEnumerable<TEntity> vs IQueryable<TEntity>
-- IExceptionFilter
-- Cors
-- Test using older VS 2017 ( < v15.3)
-- Try the same using VS Code
+### Exercise set #4 - Global exception handler
+- It is a good practice to always return consumable JSON error representation when building RESTful WebAPI.
+- Using Visual Studio:
+	1. Update `Startup.cs` and configure the HTTP request pipeline to redirect to `/api/v1/Error` controller whenever unhandled exception happens. This should work only if not in development mode, since in development we should get dev exception page with all sort of details (especially when queried with "?throw=true").
+		```csharp
+		app.UseExceptionHandler("/api/v1/Error");
+		```
+	1. Create new controller named `ErrorController`. Setup `Index()` method that return status 500 and display friendly message in JSON format. Hint:
+		```json
+		{ "error": "Unhandled exception" }
+		```
+		```csharp
+		 return StatusCode(..., new {...})
+		```
+	1. Fake one of the methods in `BlogPostsController` and throw exception from within, i.e:
+		```csharp
+		public async Task<ActionResult<IEnumerable<BlogPost>>> Get()
+		{
+			throw new BlogPostsDomainException("No posts atm");
+		}
+		```
+	1. Query it with Postman and confirm you get 500 status code with JSON body.
+	1. *(optional) Try returning exception details and URI path from where it was issued. Google `HttpContext.Features.Get<IExceptionHandlerPathFeature>()`...*
+	1. Remove the exception from faked method.
