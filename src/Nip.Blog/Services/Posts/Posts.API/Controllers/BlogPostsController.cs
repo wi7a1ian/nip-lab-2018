@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Nip.Blog.Services.Posts.API.Data;
+using Nip.Blog.Services.Posts.API.Exceptions;
 using Nip.Blog.Services.Posts.API.Models;
 
 namespace Nip.Blog.Services.Posts.API.Controllers
@@ -65,6 +66,17 @@ namespace Nip.Blog.Services.Posts.API.Controllers
         public async Task<IActionResult> Post([FromBody] BlogPost post)
         {
             _logger.LogInformation("Adding new blog post");
+
+            var isTitleAlreadyExisting = await _postsDbContext.BlogPosts
+                .Where(x => x.Title.Equals(post.Title, StringComparison.InvariantCultureIgnoreCase))
+                .ToAsyncEnumerable().Any();
+
+            // Note: below code exist solely to show how global exception handler works
+            if (isTitleAlreadyExisting)
+            {
+                throw new BlogPostsDomainException($"Blog post with such title already exist: {post.Title}");
+            }
+
             await _postsDbContext.BlogPosts.AddAsync(post);
             await _postsDbContext.SaveChangesAsync();
 
@@ -79,26 +91,38 @@ namespace Nip.Blog.Services.Posts.API.Controllers
         [ProducesResponseType(404)]
         public async Task<IActionResult> Put(long id, [FromBody] BlogPost updatedPost)
         {
-            _logger.LogInformation("Updating post {0}", updatedPost.Id);
-            _logger.LogDebug("Received post id {0} with new title: {1}'", updatedPost.Id, updatedPost.Title);
+            _logger.LogInformation("Updating post {0}", id);
+            _logger.LogDebug("Received post id {0} with new title: {1}'", id, updatedPost.Title);
 
             var post = await _postsDbContext.BlogPosts.FindAsync(id);
             if (post == null)
             {
-                _logger.LogWarning("Post {0} not found", updatedPost.Id);
+                _logger.LogWarning("Post {0} not found", id);
                 return NotFound();
             }
             else
             {
-                post.Title = updatedPost.Title;
-                post.Description = updatedPost.Description;
+                var isSuchTitleAlreadyExisting = await _postsDbContext.BlogPosts
+                    .Where(x => x.Title.Equals(updatedPost.Title, StringComparison.InvariantCultureIgnoreCase) && x.Id != id)
+                    .ToAsyncEnumerable().Any();
 
-                _postsDbContext.BlogPosts.Update(post);
-                await _postsDbContext.SaveChangesAsync();
+                if (isSuchTitleAlreadyExisting)
+                {
+                    _logger.LogWarning("Post {0} was not updated, blog post with same title already exist", id);
+                    return BadRequest(new { Title = new string[] { "Blog post with same title already exist" } });
+                }
+                else
+                {
+                    post.Title = updatedPost.Title;
+                    post.Description = updatedPost.Description;
 
-                _logger.LogInformation("Updating post {0} succeeded", updatedPost.Id);
+                    _postsDbContext.BlogPosts.Update(post);
+                    await _postsDbContext.SaveChangesAsync();
 
-                return NoContent();
+                    _logger.LogInformation("Updating post {0} succeeded", post.Id);
+
+                    return NoContent();
+                }
             }
         }
 
