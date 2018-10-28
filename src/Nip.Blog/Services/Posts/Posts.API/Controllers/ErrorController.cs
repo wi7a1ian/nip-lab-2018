@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Nip.Blog.Services.Posts.API.Exceptions;
 
 namespace Posts.API.Controllers
@@ -13,16 +14,20 @@ namespace Posts.API.Controllers
     [ApiController]
     public class ErrorController : ControllerBase
     {
+        private readonly ILogger<ErrorController> _logger;
         private readonly IHostingEnvironment _environment;
 
-        public ErrorController(IHostingEnvironment env)
+        public ErrorController(ILogger<ErrorController> logger, IHostingEnvironment env)
         {
+            _logger = logger;
             _environment = env;
         }
 
         [AllowAnonymous]
         public IActionResult Index()
         {
+            _logger.LogWarning("Unhandled exception detected");
+
             var exceptionFeature = HttpContext.Features.Get<IExceptionHandlerPathFeature>();
 
             if (exceptionFeature != null)
@@ -32,6 +37,8 @@ namespace Posts.API.Controllers
 
                 if (exceptionThatOccurred.GetType() == typeof(BlogPostsDomainException))
                 {
+                    _logger.LogWarning(exceptionThatOccurred, "Domain exception was thrown from {0}", routeWhereExceptionOccurred);
+
                     var problemDetails = new ValidationProblemDetails()
                     {
                         Instance = routeWhereExceptionOccurred,
@@ -45,6 +52,8 @@ namespace Posts.API.Controllers
                 }
                 else
                 {
+                    _logger.LogError(exceptionThatOccurred, "Exception was thrown from {0}", routeWhereExceptionOccurred);
+
                     var problemDetails = new
                     {
                         Error = exceptionThatOccurred.Message,
@@ -58,6 +67,7 @@ namespace Posts.API.Controllers
             }
             else
             {
+                _logger.LogError("Could not obtain exception details");
                 return StatusCode((int)HttpStatusCode.InternalServerError, new { Error = "Unknown error" });
             }
         }

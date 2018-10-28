@@ -18,8 +18,11 @@ namespace Nip.Blog.Services.Posts.API
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        private readonly ILogger<Startup> _logger;
+
+        public Startup(ILogger<Startup> logger, IConfiguration configuration)
         {
+            _logger = logger;
             Configuration = configuration;
         }
 
@@ -28,9 +31,12 @@ namespace Nip.Blog.Services.Posts.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            _logger.LogInformation("Adding in-memory BlogPosts database");
             services.AddDbContext<BlogPostContext>(opt => opt.UseInMemoryDatabase("BlogPosts"));
+
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
+            _logger.LogInformation("Adding Swagger documentation generator");
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new Info
@@ -57,6 +63,7 @@ namespace Nip.Blog.Services.Posts.API
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+            _logger.LogInformation("Adding Swagger UI");
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
@@ -66,6 +73,7 @@ namespace Nip.Blog.Services.Posts.API
 
             if (env.IsDevelopment())
             {
+                _logger.LogInformation("Running in Development environment");
                 app.UseDeveloperExceptionPage();
             }
             else

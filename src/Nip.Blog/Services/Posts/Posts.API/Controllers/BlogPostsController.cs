@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Nip.Blog.Services.Posts.API.Data;
 using Nip.Blog.Services.Posts.API.Models;
 
@@ -12,10 +13,12 @@ namespace Nip.Blog.Services.Posts.API.Controllers
     [ApiController]
     public class BlogPostsController : ControllerBase
     {
+        private readonly ILogger<BlogPostsController> _logger;
         private readonly BlogPostContext _postsDbContext;
 
-        public BlogPostsController(BlogPostContext postsDbContext)
+        public BlogPostsController(ILogger<BlogPostsController> logger, BlogPostContext postsDbContext)
         {
+            _logger = logger;
             _postsDbContext = postsDbContext;
         }
 
@@ -28,7 +31,11 @@ namespace Nip.Blog.Services.Posts.API.Controllers
         [ProducesResponseType(200, Type = typeof(IEnumerable<BlogPost>))]
         public async Task<ActionResult<IEnumerable<BlogPost>>> Get()
         {
-            return Ok(await _postsDbContext.BlogPosts.ToAsyncEnumerable().ToList());
+            _logger.LogInformation("Obtaining all the blog posts");
+            var posts = await _postsDbContext.BlogPosts.ToAsyncEnumerable().ToList();
+            _logger.LogDebug("Retrieved {0} posts total", posts.Count());
+
+            return Ok(posts);
         }
 
         // GET api/blogposts/5
@@ -37,9 +44,12 @@ namespace Nip.Blog.Services.Posts.API.Controllers
         [ProducesResponseType(404)]
         public async Task<ActionResult<BlogPost>> Get(long id)
         {
+            _logger.LogInformation("Obtaining post {Id}", id);
+
             var item = await _postsDbContext.BlogPosts.FindAsync(id);
             if (item == null)
             {
+                _logger.LogWarning("Post {Id} not found", id);
                 return NotFound();
             }
             else
@@ -54,9 +64,11 @@ namespace Nip.Blog.Services.Posts.API.Controllers
         [ProducesResponseType(400)]
         public async Task<IActionResult> Post([FromBody] BlogPost post)
         {
+            _logger.LogInformation("Adding new blog post");
             await _postsDbContext.BlogPosts.AddAsync(post);
             await _postsDbContext.SaveChangesAsync();
 
+            _logger.LogInformation("Post {0} has been added", post.Id);
             return CreatedAtRoute("GetBlogPost", new { id = post.Id }, post);
         }
 
@@ -67,9 +79,13 @@ namespace Nip.Blog.Services.Posts.API.Controllers
         [ProducesResponseType(404)]
         public async Task<IActionResult> Put(long id, [FromBody] BlogPost updatedPost)
         {
+            _logger.LogInformation("Updating post {0}", updatedPost.Id);
+            _logger.LogDebug("Received post id {0} with new title: {1}'", updatedPost.Id, updatedPost.Title);
+
             var post = await _postsDbContext.BlogPosts.FindAsync(id);
             if (post == null)
             {
+                _logger.LogWarning("Post {0} not found", updatedPost.Id);
                 return NotFound();
             }
             else
@@ -79,6 +95,8 @@ namespace Nip.Blog.Services.Posts.API.Controllers
 
                 _postsDbContext.BlogPosts.Update(post);
                 await _postsDbContext.SaveChangesAsync();
+
+                _logger.LogInformation("Updating post {0} succeeded", updatedPost.Id);
 
                 return NoContent();
             }
@@ -90,15 +108,19 @@ namespace Nip.Blog.Services.Posts.API.Controllers
         [ProducesResponseType(404)]
         public async Task<IActionResult> Delete(long id)
         {
+            _logger.LogInformation("Removing post {id}", id);
             var post = await _postsDbContext.BlogPosts.FindAsync(id);
             if (post == null)
             {
+                _logger.LogWarning("Post {id} not found", id);
                 return NotFound();
             }
             else
             {
                 _postsDbContext.BlogPosts.Remove(post);
                 await _postsDbContext.SaveChangesAsync();
+
+                _logger.LogInformation("Removing post {id} succeeded", id);
 
                 return NoContent();
             }
