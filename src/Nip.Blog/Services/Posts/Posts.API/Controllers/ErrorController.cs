@@ -20,6 +20,7 @@ namespace Posts.API.Controllers
             _environment = env;
         }
 
+        [HttpGet]
         [AllowAnonymous]
         public IActionResult Index()
         {
