@@ -202,16 +202,16 @@
 		```
 - Using Postman:
 	1. Send and notice the 404 HTTP status code:\
-	`GET http://localhost:5000/api/blogposts/923829`
+	`GET https://localhost:5001/api/blogposts/923829`
 	1. Send and notice the 400 HTTP status code:\
-	`GET http://localhost:5000/api/blogposts/' or 1=1`
+	`GET https://localhost:5001/api/blogposts/' or 1=1`
 	1. Add "POST" request and validate it work (don't forget to hit Save!):\
-	`POST http://localhost:5000/api/blogposts { "title": "New Post", "description": "Lorem ipsum..." }`
+	`POST https://localhost:5001/api/blogposts { "title": "New Post", "description": "Lorem ipsum..." }`
 	1. Notice the 201 status code and generated route for the new blog post (Headers -> Location). Validate the URI is accessible.
 	1. Add "PUT" request and validate it work:\
-	`PUT http://localhost:5000/api/blogposts/1 { "title": "New Post With Fixed Title", "description": "Lorem ipsum..." }`
+	`PUT https://localhost:5001/api/blogposts/1 { "title": "New Post With Fixed Title", "description": "Lorem ipsum..." }`
 	1. Add "PUT" request and validate it work:\
-	`DELETE http://localhost:5000/api/blogposts/1`
+	`DELETE https://localhost:5001/api/blogposts/1`
 	1. Try sending invalid models, like: empty one; with changed field names; with changed field value types, i.e: array [] or object {}.
 
 ### Exercise set #2 - asynchronous IO access & asynchronous API
