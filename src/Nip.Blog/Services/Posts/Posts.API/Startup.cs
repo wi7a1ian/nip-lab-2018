@@ -70,6 +70,7 @@ namespace Nip.Blog.Services.Posts.API
             }
             else
             {
+                app.UseExceptionHandler("/api/v1/Error");
                 app.UseHsts();
             }
 
