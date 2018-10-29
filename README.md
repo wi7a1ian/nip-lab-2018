@@ -106,7 +106,7 @@
 			...
 		}
 		```
-	1. Then we can use it in our BlogPostsController now:
+	1. Then we can use it in our BlogPostsController:
 		```csharp
 		public class BlogPostsController : ControllerBase
 		{
