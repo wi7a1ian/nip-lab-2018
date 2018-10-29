@@ -330,10 +330,10 @@
 ### Exercise set #5 - Logging
 - Few hints about logging
 	- Never log any sensitive data (i.: usernames) at any level that goes to production. Trace/Debug level is less restrictive as long as it is only for development environment and does not involve "live" data.
-	- **Trace** - allow developer to track program execution, like begin/end of a method, bigger steps in algorithm, loops.
-	- **Debug** - strictly for debugging purposes, like reading variable/model values, list sizes, consitions.
+	- **Trace** - debugging only, allow developer to track program execution, like begin/end of a method, bigger steps in algorithm, loops.
+	- **Debug** - strictly for development & debugging purposes, like reading variable/model values, list sizes, consitions.
 	- **Info** - usually contains information available in production so it is visible by OPS, used to track calls between "systems", like querying another api, processing a request, bigger steps in algorithms.
-	- **Warn** - errors or unexpected behaviors which can be handled by application, like catched exceptions, invalid arguments.
+	- **Warn** - errors or unexpected behaviors which can be handled by application, like handled exceptions, invalid arguments.
 	- **Error** - scenarios that are unrecoverable but can perform another work, like generic error handler.
 	- **Critical/Fatal** - you should terminate right after this one... like no disk space, no space on the heap, lack of network connection.
 - Using Visual Studio:
