@@ -37,8 +37,8 @@
 	1. Name it Nip.Blog, this follows the common patter `<company>.<product>.*`
 	1. Right click on solution name and add folder path `Services/Posts` 
 	1. Right click on `Services/Posts`, select Add > New project...
-	1. Select the ASP.NET Core Web Application template. Name the project Posts.Api and click OK.
-	1. In the New ASP.NET Core Web Application - NIP.Backend.BlogApi dialog, choose the ASP.NET Core version. Select the API template and click OK. Do not select Enable Docker Support.
+	1. Select the *ASP.NET Core Web Application* template. Name the project Posts.Api and click OK.
+	1. In the *New ASP.NET Core Web Application* dialog, choose 2.1 or later as the ASP.NET Core version. Select the API template and click OK. Do not select Enable Docker Support.
 	1. *(optinal) Rename the default namespace (everywhere) from `Posts.API` to `Nip.Blog.Services.Posts.API` for consistency (`<company>.<product>.<>`)*
 	1. Right click the `ValuesController.cs` and rename it to `BlogPostsController.cs`
 	1. At the toolbar switch the debug target from `IIS Express` to `Nip.Blog.Services.Posts.API` and run it. *( the reason behind this is that we want to use .net core runtime to run the server for us and not the IIS )*
