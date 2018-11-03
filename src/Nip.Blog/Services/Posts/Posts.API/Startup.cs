@@ -31,8 +31,7 @@ namespace Nip.Blog.Services.Posts.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            _logger.LogInformation("Adding in-memory BlogPosts database");
-            services.AddDbContext<BlogPostContext>(opt => opt.UseInMemoryDatabase("BlogPosts"));
+            ConfigureDatabaseProviders(services);
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
@@ -58,6 +57,18 @@ namespace Nip.Blog.Services.Posts.API
                     }
                 });
             });
+        }
+
+        private void ConfigureDatabaseProviders(IServiceCollection services)
+        {
+            //_logger.LogInformation("Adding in-memory BlogPosts database");
+            //services.AddDbContext<BlogPostContext>(opt => opt.UseInMemoryDatabase("BlogPosts"));
+
+            _logger.LogInformation("Adding MsSQL-backed BlogPosts database");
+            var connection = @"Server=(localdb)\mssqllocaldb;Database=BlogPostsDb;Trusted_Connection=True;ConnectRetryCount=0";
+            services.AddDbContext<BlogPostContext>(options => options.UseSqlServer(connection));
+            // PS> Add-Migration InitialCreate
+            // PS> Update-Database
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
