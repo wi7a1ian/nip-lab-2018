@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace Nip.Blog.Services.Posts.API.Migrations
+namespace Nip.Blog.Services.Posts.API.Data.Migrations
 {
     public partial class InitialCreate : Migration
     {

@@ -64,7 +64,7 @@ namespace Nip.Blog.Services.Posts.API
             // CMD> dotnet add package Microsoft.EntityFrameworkCore.Sqlite
 
             _logger.LogInformation("Adding SQLite-backed BlogPosts database");
-            var connection = @"Data Source=Posts.db";
+            var connection = @"Data Source=Data/Posts.db";
             services.AddDbContextPool<BlogPostContext>(options => options.UseSqlite(connection));
             
             // CMD> dotnet ef migrations add InitialCreate

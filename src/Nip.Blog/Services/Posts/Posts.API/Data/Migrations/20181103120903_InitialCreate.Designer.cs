@@ -2,15 +2,17 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Nip.Blog.Services.Posts.API.Data;
 
-namespace Nip.Blog.Services.Posts.API.Migrations
+namespace Nip.Blog.Services.Posts.API.Data.Migrations
 {
     [DbContext(typeof(BlogPostContext))]
-    partial class BlogPostContextModelSnapshot : ModelSnapshot
+    [Migration("20181103120903_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
