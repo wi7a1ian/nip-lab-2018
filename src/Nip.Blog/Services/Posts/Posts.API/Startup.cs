@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -65,7 +66,8 @@ namespace Nip.Blog.Services.Posts.API
 
             _logger.LogInformation("Adding SQLite-backed BlogPosts database");
             var connection = @"Data Source=Data/Posts.db";
-            services.AddDbContextPool<BlogPostContext>(options => options.UseSqlite(connection));
+            services.AddDbContextPool<BlogPostContext>(opt => opt.UseSqlite(connection)
+                    .ConfigureWarnings(warnings => warnings.Throw(RelationalEventId.QueryClientEvaluationWarning)));
             
             // CMD> dotnet ef migrations add InitialCreate
             // CMD> dotnet ef database update
