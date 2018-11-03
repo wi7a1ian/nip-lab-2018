@@ -61,12 +61,15 @@ namespace Nip.Blog.Services.Posts.API
 
         private void ConfigureDatabaseProviders(IServiceCollection services)
         {
-            //_logger.LogInformation("Adding in-memory BlogPosts database");
-            //services.AddDbContext<BlogPostContext>(opt => opt.UseInMemoryDatabase("BlogPosts"));
+            // CMD> dotnet add package Microsoft.EntityFrameworkCore.Sqlite
 
             _logger.LogInformation("Adding MsSQL-backed BlogPosts database");
             var connection = @"Server=(localdb)\mssqllocaldb;Database=BlogPostsDb;Trusted_Connection=True;ConnectRetryCount=0";
             services.AddDbContext<BlogPostContext>(options => options.UseSqlServer(connection));
+            
+            // CMD> dotnet ef migrations add InitialCreate
+            // CMD> dotnet ef database update
+            // or
             // PS> Add-Migration InitialCreate
             // PS> Update-Database
         }
