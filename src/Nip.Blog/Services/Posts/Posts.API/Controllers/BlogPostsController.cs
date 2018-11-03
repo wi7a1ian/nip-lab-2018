@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Nip.Blog.Services.Posts.API.Data;
 using Nip.Blog.Services.Posts.API.Exceptions;
 using Nip.Blog.Services.Posts.API.Models;
+using Nip.Blog.Services.Posts.API.Repositories;
 
 namespace Nip.Blog.Services.Posts.API.Controllers
 {
@@ -15,12 +16,12 @@ namespace Nip.Blog.Services.Posts.API.Controllers
     public class BlogPostsController : ControllerBase
     {
         private readonly ILogger<BlogPostsController> _logger;
-        private readonly BlogPostContext _postsDbContext;
+        private readonly IBlogPostRepository _postsRepo;
 
-        public BlogPostsController(ILogger<BlogPostsController> logger, BlogPostContext postsDbContext)
+        public BlogPostsController(ILogger<BlogPostsController> logger, IBlogPostRepository repo)
         {
             _logger = logger;
-            _postsDbContext = postsDbContext;
+            _postsRepo = repo;
         }
 
         // GET api/blogposts
@@ -33,7 +34,7 @@ namespace Nip.Blog.Services.Posts.API.Controllers
         public async Task<ActionResult<IEnumerable<BlogPost>>> Get()
         {
             _logger.LogInformation("Obtaining all the blog posts");
-            var posts = await _postsDbContext.BlogPosts.ToAsyncEnumerable().ToList();
+            var posts = await _postsRepo.GetAllAsync().ToList();
             _logger.LogDebug("Retrieved {0} posts total", posts.Count());
 
             return Ok(posts);
@@ -47,7 +48,7 @@ namespace Nip.Blog.Services.Posts.API.Controllers
         {
             _logger.LogInformation("Obtaining post {Id}", id);
 
-            var item = await _postsDbContext.BlogPosts.FindAsync(id);
+            var item = await _postsRepo.GetAsync(id);
             if (item == null)
             {
                 _logger.LogWarning("Post {Id} not found", id);
@@ -67,18 +68,7 @@ namespace Nip.Blog.Services.Posts.API.Controllers
         {
             _logger.LogInformation("Adding new blog post");
 
-            var isTitleAlreadyExisting = await _postsDbContext.BlogPosts
-                .Where(x => x.Title.Equals(post.Title, StringComparison.InvariantCultureIgnoreCase))
-                .ToAsyncEnumerable().Any();
-
-            // Note: below code exist solely to show how global exception handler works
-            if (isTitleAlreadyExisting)
-            {
-                throw new BlogPostsDomainException($"Blog post with such title already exist: {post.Title}");
-            }
-
-            await _postsDbContext.BlogPosts.AddAsync(post);
-            await _postsDbContext.SaveChangesAsync();
+            await _postsRepo.AddAsync(post);
 
             _logger.LogInformation("Post {0} has been added", post.Id);
             return CreatedAtRoute("GetBlogPost", new { id = post.Id }, post);
@@ -94,7 +84,7 @@ namespace Nip.Blog.Services.Posts.API.Controllers
             _logger.LogInformation("Updating post {0}", id);
             _logger.LogDebug("Received post id {0} with new title: {1}'", id, updatedPost.Title);
 
-            var post = await _postsDbContext.BlogPosts.FindAsync(id);
+            var post = await _postsRepo.GetAsync(id);
             if (post == null)
             {
                 _logger.LogWarning("Post {0} not found", id);
@@ -102,27 +92,11 @@ namespace Nip.Blog.Services.Posts.API.Controllers
             }
             else
             {
-                var isSuchTitleAlreadyExisting = await _postsDbContext.BlogPosts
-                    .Where(x => x.Title.Equals(updatedPost.Title, StringComparison.InvariantCultureIgnoreCase) && x.Id != id)
-                    .ToAsyncEnumerable().Any();
+                updatedPost.Id = id;
+                await _postsRepo.UpdateAsync(updatedPost);
 
-                if (isSuchTitleAlreadyExisting)
-                {
-                    _logger.LogWarning("Post {0} was not updated, blog post with same title already exist", id);
-                    return BadRequest(new { Title = new string[] { "Blog post with same title already exist" } });
-                }
-                else
-                {
-                    post.Title = updatedPost.Title;
-                    post.Description = updatedPost.Description;
-
-                    _postsDbContext.BlogPosts.Update(post);
-                    await _postsDbContext.SaveChangesAsync();
-
-                    _logger.LogInformation("Updating post {0} succeeded", post.Id);
-
-                    return NoContent();
-                }
+                _logger.LogInformation("Updating post {0} succeeded", post.Id);
+                return NoContent(); 
             }
         }
 
@@ -133,7 +107,8 @@ namespace Nip.Blog.Services.Posts.API.Controllers
         public async Task<IActionResult> Delete(long id)
         {
             _logger.LogInformation("Removing post {id}", id);
-            var post = await _postsDbContext.BlogPosts.FindAsync(id);
+
+            var post = await _postsRepo.GetAsync(id);
             if (post == null)
             {
                 _logger.LogWarning("Post {id} not found", id);
@@ -141,11 +116,9 @@ namespace Nip.Blog.Services.Posts.API.Controllers
             }
             else
             {
-                _postsDbContext.BlogPosts.Remove(post);
-                await _postsDbContext.SaveChangesAsync();
+                await _postsRepo.DeleteAsync(id);
 
                 _logger.LogInformation("Removing post {id} succeeded", id);
-
                 return NoContent();
             }
         }

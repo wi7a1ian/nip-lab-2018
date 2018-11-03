@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Nip.Blog.Services.Posts.API.Data;
+using Nip.Blog.Services.Posts.API.Repositories;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace Nip.Blog.Services.Posts.API
@@ -58,6 +59,8 @@ namespace Nip.Blog.Services.Posts.API
                     }
                 });
             });
+
+            services.AddScoped<IBlogPostRepository, BlogPostRepository>();
         }
 
         private void ConfigureDatabaseProviders(IServiceCollection services)
