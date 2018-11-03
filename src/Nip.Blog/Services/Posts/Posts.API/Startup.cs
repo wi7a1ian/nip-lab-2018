@@ -63,15 +63,12 @@ namespace Nip.Blog.Services.Posts.API
         {
             // CMD> dotnet add package Microsoft.EntityFrameworkCore.Sqlite
 
-            _logger.LogInformation("Adding MsSQL-backed BlogPosts database");
-            var connection = @"Server=(localdb)\mssqllocaldb;Database=BlogPostsDb;Trusted_Connection=True;ConnectRetryCount=0";
-            services.AddDbContext<BlogPostContext>(options => options.UseSqlServer(connection));
+            _logger.LogInformation("Adding SQLite-backed BlogPosts database");
+            var connection = @"Data Source=Posts.db";
+            services.AddDbContext<BlogPostContext>(options => options.UseSqlite(connection));
             
             // CMD> dotnet ef migrations add InitialCreate
             // CMD> dotnet ef database update
-            // or
-            // PS> Add-Migration InitialCreate
-            // PS> Update-Database
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
