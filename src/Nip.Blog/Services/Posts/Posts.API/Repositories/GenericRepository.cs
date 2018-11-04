@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Nip.Blog.Services.Posts.API.Models;
@@ -23,7 +24,7 @@ namespace Nip.Blog.Services.Posts.API.Repositories
             return _dbSet.ToAsyncEnumerable();
         }
 
-        public virtual async Task<PaginatedItems<T>> GetAllPagedAsync(int pageIndex, int pageSize)
+        public virtual async Task<PaginatedItems<T>> GetAllPagedAsync(int pageIndex, int pageSize, Expression<Func<T, bool>> filter = null)
         {
             if(pageIndex < 0)
             {
@@ -35,9 +36,16 @@ namespace Nip.Blog.Services.Posts.API.Repositories
                 throw new ArgumentException("Cannot be negative", nameof(pageSize));
             }
 
-            var totalItems = await _dbSet.CountAsync();
+            IQueryable<T> query = _dbSet;
 
-            var posts = await _dbSet.OrderByDescending(c => c.Id).Skip(pageIndex * pageSize).Take(pageSize)
+            if (filter != null)
+            {
+                query = query.Where(filter);
+            }
+
+            var totalItems = await query.CountAsync();
+
+            var posts = await query.OrderByDescending(c => c.Id).Skip(pageIndex * pageSize).Take(pageSize)
                 .ToListAsync();
 
             var actPageSize = Math.Min(pageSize, totalItems - pageIndex * pageSize);

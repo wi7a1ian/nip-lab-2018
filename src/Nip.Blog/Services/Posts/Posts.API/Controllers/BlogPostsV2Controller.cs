@@ -60,6 +60,33 @@ namespace Nip.Blog.Services.Posts.API.Controllers
             }
         }
 
+        // GET api/v2/blogposts/withtitle/sometitle[?pageIndex=3&pageSize=10]
+        [HttpGet("withtitle/{title:minlength(1)}")]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(200, Type = typeof(PaginatedItems<BlogPost>))]
+        public async Task<IActionResult> Get(string title, [FromQuery]int pageIndex = 0, [FromQuery]int pageSize = 5)
+        {
+            if (pageIndex < 0 || pageSize < 1 || string.IsNullOrWhiteSpace(title))
+            {
+                _logger.LogWarning("Incorrect parameters provided");
+                return BadRequest();
+            }
+            else
+            {
+                _logger.LogInformation("Obtaining blog posts: page = {0}, size = {1}", pageIndex, pageSize);
+                _logger.LogDebug("Title filter: '{0}'", title);
+
+                var pagedPosts = await _postsRepo.GetAllPagedAsync(pageIndex, pageSize, x => x.Title.Contains(title));
+                var isLastPage = (pagedPosts.TotalItems <= pageIndex * pageSize + pagedPosts.PageSize);
+
+                pagedPosts.NextPage = (!isLastPage ? Url.Link(null, new { pageIndex = pageIndex + 1, pageSize = pageSize }) : null);
+
+                _logger.LogDebug("Retrieved {0} posts from {1} total", pagedPosts.PageSize, pagedPosts.TotalItems);
+
+                return Ok(pagedPosts);
+            }
+        }
+
         // GET api/v2/blogposts/5
         [HttpGet("{id}", Name = "GetBlogPostV2")]
         [ProducesResponseType(200, Type = typeof(BlogPost))]

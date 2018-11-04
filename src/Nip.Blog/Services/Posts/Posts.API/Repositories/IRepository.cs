@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Linq.Expressions;
 
 namespace Nip.Blog.Services.Posts.API.Repositories
 {
@@ -10,7 +11,7 @@ namespace Nip.Blog.Services.Posts.API.Repositories
     {
         Task<T> GetAsync(long id);
         IAsyncEnumerable<T> GetAllAsync();
-        Task<PaginatedItems<T>> GetAllPagedAsync(int pageIndex, int pageSize);
+        Task<PaginatedItems<T>> GetAllPagedAsync(int pageIndex, int pageSize, Expression<Func<T, bool>> filter = null);
         Task AddAsync(T item);
         Task UpdateAsync(T item);
         Task DeleteAsync(long id);
