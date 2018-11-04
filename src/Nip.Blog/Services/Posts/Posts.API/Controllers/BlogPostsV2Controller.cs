@@ -27,6 +27,7 @@ namespace Nip.Blog.Services.Posts.API.Controllers
 
         // GET api/v2/blogposts[?pageIndex=3&pageSize=10]
         [HttpGet]
+        [ProducesResponseType(400)]
         [ProducesResponseType(200, Type = typeof(IEnumerable<BlogPost>))]
         [ProducesResponseType(200, Type = typeof(PaginatedItems<BlogPost>))]
         public async Task<IActionResult> Get([FromQuery]int pageIndex = -1, [FromQuery]int pageSize = 5)
