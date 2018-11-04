@@ -26,7 +26,13 @@ namespace Nip.Blog.Services.Posts.API.Data
 
             var posts = new List<BlogPost>
             {
-                new BlogPost{Title="Test 1", Description = "Descrition 1"},
+                new BlogPost{Title="Test 1", Description = "Descrition 1", Comments = new List<BlogPostComment>
+                    {
+                        new BlogPostComment{ Author = "Author 1", Content = "Some Comment 1" },
+                        new BlogPostComment{ Author = "Author 2", Content = "Some Comment 2" },
+                        new BlogPostComment{ Author = "Author 3", Content = "Some Comment 3" },
+                    }
+                },
                 new BlogPost{Title="Test 2", Description = "Descrition 2"},
                 new BlogPost{Title="Test 3", Description = "Descrition 3"},
                 new BlogPost{Title="Test 4", Description = "Descrition 4"},

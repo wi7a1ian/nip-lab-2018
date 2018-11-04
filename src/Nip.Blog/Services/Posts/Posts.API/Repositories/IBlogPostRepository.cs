@@ -8,6 +8,7 @@ namespace Nip.Blog.Services.Posts.API.Repositories
 {
     public interface IBlogPostRepository : IRepository<BlogPost>
     {
-        // TBD
+        Task<IAsyncEnumerable<BlogPostComment>> GetCommentsAsync(long blogPostId);
+        Task AddCommentAsync(long blogPostId, BlogPostComment comment);
     }
 }

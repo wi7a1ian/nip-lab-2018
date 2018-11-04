@@ -15,5 +15,7 @@ namespace Nip.Blog.Services.Posts.API.Models
 
         [StringLength(4096)]
         public string Description { get; set; }
+
+        public ICollection<BlogPostComment> Comments { get; set; }
     }
 }

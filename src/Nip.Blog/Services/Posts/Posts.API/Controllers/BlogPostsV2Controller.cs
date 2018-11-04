@@ -169,5 +169,48 @@ namespace Nip.Blog.Services.Posts.API.Controllers
                 return NoContent();
             }
         }
+
+        // GET api/v2/blogposts/5/comments
+        [HttpGet("{id}/comments", Name = "GetBlogPostComments")]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<BlogPostComment>))]
+        [ProducesResponseType(404)]
+        public async Task<ActionResult<BlogPostComment>> GetAllComments(long id)
+        {
+            _logger.LogInformation("Obtaining comments for post {Id}", id);
+
+            try
+            {
+                var comments = await _postsRepo.GetCommentsAsync(id);
+                return Ok(await comments.ToList());
+
+            }
+            catch (BlogPostsDomainException ex)
+            {
+                _logger.LogWarning(ex, "Faild to fetch comments for post {Id}", id);
+                return NotFound();
+            }
+        }
+
+        // POST api/v2/blogposts/5/comments
+        [HttpPost("{id}/comments")]
+        [ProducesResponseType(201, Type = typeof(BlogPostComment))]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> PostComment(long id, [FromBody] BlogPostComment comment)
+        {
+            _logger.LogInformation("Adding new blog post comment");
+
+            try
+            {
+                await _postsRepo.AddCommentAsync(id, comment);
+
+                _logger.LogInformation("Post comment {0} has been added", comment.Id);
+                return CreatedAtRoute("GetBlogPostComments", new { id = id }, comment);
+            }
+            catch (BlogPostsDomainException ex)
+            {
+                _logger.LogWarning(ex, "Faild to fetch comments for post {Id}", id);
+                return NotFound();
+            }
+        }
     }
 }
