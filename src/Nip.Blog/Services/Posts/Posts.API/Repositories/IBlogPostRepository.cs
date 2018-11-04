@@ -1,17 +1,13 @@
-﻿using Nip.Blog.Services.Posts.API.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Nip.Blog.Services.Posts.API.Models;
 
 namespace Nip.Blog.Services.Posts.API.Repositories
 {
-    public interface IBlogPostRepository
+    public interface IBlogPostRepository : IRepository<BlogPost>
     {
-        Task<BlogPost> GetAsync(long id);
-        IAsyncEnumerable<BlogPost> GetAllAsync();
-        Task AddAsync(BlogPost post);
-        Task UpdateAsync(BlogPost post);
-        Task DeleteAsync(long id);
+        // TBD
     }
 }

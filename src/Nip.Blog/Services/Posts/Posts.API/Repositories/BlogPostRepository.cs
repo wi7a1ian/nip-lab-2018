@@ -8,28 +8,18 @@ using Nip.Blog.Services.Posts.API.Models;
 
 namespace Nip.Blog.Services.Posts.API.Repositories
 {
-    public class BlogPostRepository : IBlogPostRepository
+    public class BlogPostRepository : GenericRepository<BlogPost>, IBlogPostRepository
     {
-        private readonly BlogPostContext _context;
+        private readonly BlogPostContext _bpContext;
 
-        public BlogPostRepository(BlogPostContext context)
+        public BlogPostRepository(BlogPostContext context) : base(context)
         {
-            _context = context;
+            _bpContext = context;
         }
 
-        public IAsyncEnumerable<BlogPost> GetAllAsync()
+        public override async Task AddAsync(BlogPost post)
         {
-            return _context.BlogPosts.ToAsyncEnumerable();
-        }
-
-        public async Task<BlogPost> GetAsync(long id)
-        {
-            return await _context.BlogPosts.FindAsync(id);
-        }
-
-        public async Task AddAsync(BlogPost post)
-        {
-            var isTitleAlreadyExisting = await _context.BlogPosts
+            var isTitleAlreadyExisting = await _bpContext.BlogPosts
                 .Where(x => x.Title.Equals(post.Title))
                 .ToAsyncEnumerable().Any();
 
@@ -40,14 +30,13 @@ namespace Nip.Blog.Services.Posts.API.Repositories
             }
             else
             {
-                await _context.BlogPosts.AddAsync(post);
-                await _context.SaveChangesAsync();
+                await base.AddAsync(post);
             }
         }
 
-        public async Task UpdateAsync(BlogPost post)
+        public override async Task UpdateAsync(BlogPost post)
         {
-            var isSuchTitleAlreadyExisting = await _context.BlogPosts
+            var isSuchTitleAlreadyExisting = await _bpContext.BlogPosts
                     .Where(x => x.Title.Equals(post.Title) && x.Id != post.Id)
                     .ToAsyncEnumerable().Any();
 
@@ -57,20 +46,7 @@ namespace Nip.Blog.Services.Posts.API.Repositories
             }
             else
             {
-                var existingPost = await _context.BlogPosts.FindAsync(post.Id);
-                _context.Entry(existingPost).CurrentValues.SetValues(post);
-
-                await _context.SaveChangesAsync();
-            }
-        }
-
-        public async Task DeleteAsync(long id)
-        {
-            var post = await _context.BlogPosts.FindAsync(id);
-            if (post != null)
-            {
-                _context.BlogPosts.Remove(post);
-                await _context.SaveChangesAsync();
+                await base.UpdateAsync(post);
             }
         }
     }

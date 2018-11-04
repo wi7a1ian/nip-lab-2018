@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 
 namespace Nip.Blog.Services.Posts.API.Models
 {
-    public class BlogPost
+    public class BlogPost : Entity
     {
-        public long Id { get; set; }
-
         [Required]
         [StringLength(32, MinimumLength = 3)]
         [RegularExpression(@"^[A-Z]+[a-zA-Z0-9""'\s-]*$", ErrorMessage = "Should start from capital letter and consist only of basic characters.")]
