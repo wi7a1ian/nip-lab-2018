@@ -25,20 +25,38 @@ namespace Nip.Blog.Services.Posts.API.Controllers
             _postsRepo = repo;
         }
 
-        // GET api/v1/blogposts
-        // GET api/v1/blogposts/all
-        // GET api/v1/blogposts/getall
+        // GET api/v2/blogposts[?pageIndex=3&pageSize=10]
         [HttpGet]
-        [HttpGet("all")] // Note: multiple routing
-        [HttpGet("GetAll")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<BlogPost>))]
-        public async Task<ActionResult<IEnumerable<BlogPost>>> Get()
+        [ProducesResponseType(200, Type = typeof(PaginatedItems<BlogPost>))]
+        public async Task<IActionResult> Get([FromQuery]int pageIndex = -1, [FromQuery]int pageSize = 5)
         {
             _logger.LogInformation("Obtaining all the blog posts");
             var posts = await _postsRepo.GetAllAsync().ToList();
-            _logger.LogDebug("Retrieved {0} posts total", posts.Count());
 
-            return Ok(posts);
+            if (pageIndex < 0 || pageSize < 0)
+            {
+                _logger.LogDebug("Retrieved {0} posts total", posts.Count);
+                return Ok(posts);
+            }
+            else
+            {
+                var actPageSize = Math.Min(pageSize, posts.Count() - pageIndex * pageSize);
+                var isLastPage = posts.Count() <= pageIndex * pageSize + actPageSize;
+
+                var pagedPosts = new PaginatedItems<BlogPost>
+                {
+                    PageIndex = pageIndex,
+                    PageSize = ((actPageSize < 0) ? 0 : actPageSize),
+                    TotalItems = posts.Count(),
+                    Items = posts.OrderByDescending(c => c.Id).Skip(pageIndex * pageSize).Take(pageSize),
+                    NextPage = (!isLastPage ? Url.Link(null, new { pageIndex = pageIndex + 1, pageSize = pageSize }) : null)
+                };
+
+                _logger.LogDebug("Retrieved {0} posts from {1} total", pagedPosts.PageSize, pagedPosts.TotalItems);
+
+                return Ok(pagedPosts);
+            }
         }
 
         // GET api/v2/blogposts/5
