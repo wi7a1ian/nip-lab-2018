@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
@@ -36,29 +37,7 @@ namespace Nip.Blog.Services.Posts.API
             ConfigureDatabaseProviders(services);
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-
-            _logger.LogInformation("Adding Swagger documentation generator");
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new Info
-                {
-                    Version = "v1",
-                    Title = "Blog Posts API",
-                    Description = "RESTful repository allowing basic CRUD operations on blog post resource.",
-                    TermsOfService = "None",
-                    Contact = new Contact
-                    {
-                        Name = "Rick Roll",
-                        Email = string.Empty,
-                        Url = "https://github.com/wi7a1ian"
-                    },
-                    License = new License
-                    {
-                        Name = "Use under MIT license",
-                        Url = "https://github.com/wi7a1ian/nip-lab-2018/blob/master/LICENSE.md"
-                    }
-                });
-            });
+            ConfigureVersioningAndDocProviders(services);
 
             services.AddScoped<IBlogPostRepository, BlogPostRepository>();
         }
@@ -76,14 +55,40 @@ namespace Nip.Blog.Services.Posts.API
             // CMD> dotnet ef database update
         }
 
+        private void ConfigureVersioningAndDocProviders(IServiceCollection services)
+        {
+            _logger.LogInformation("Adding API versioning provider");
+            services.AddMvcCore().AddVersionedApiExplorer(
+                options =>
+                {
+                    options.GroupNameFormat = "'v'VVV";
+                    options.SubstituteApiVersionInUrl = true;
+                });
+            services.AddApiVersioning(options => options.ReportApiVersions = true);
+
+            _logger.LogInformation("Adding Swagger documentation generator");
+            services.AddSwaggerGen(
+                options =>
+                {
+                    var provider = services.BuildServiceProvider().GetRequiredService<IApiVersionDescriptionProvider>();
+                    foreach (var description in provider.ApiVersionDescriptions)
+                    {
+                        options.SwaggerDoc(description.GroupName, CreateInfoForApiVersion(description));
+                    }
+                });
+        }
+
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApiVersionDescriptionProvider apiVersionDescProvider)
         {
             _logger.LogInformation("Adding Swagger UI");
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Blog Posts API v1");
+                foreach (var description in apiVersionDescProvider.ApiVersionDescriptions)
+                {
+                    c.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", description.GroupName.ToUpperInvariant());
+                }
                 c.RoutePrefix = string.Empty; // serve the Swagger UI at the app's root
             });
 
@@ -100,6 +105,35 @@ namespace Nip.Blog.Services.Posts.API
 
             app.UseHttpsRedirection();
             app.UseMvc();
+        }
+
+        static Info CreateInfoForApiVersion(ApiVersionDescription description)
+        {
+            var info = new Info()
+            {
+                Title = $"Blog Posts API {description.ApiVersion}",
+                Version = description.ApiVersion.ToString(),
+                Description = "RESTful repository allowing basic CRUD operations on blog post resource.",
+                TermsOfService = "None",
+                Contact = new Contact
+                {
+                    Name = "Rick Roll",
+                    Email = string.Empty,
+                    Url = "https://github.com/wi7a1ian"
+                },
+                License = new License
+                {
+                    Name = "Use under MIT license",
+                    Url = "https://github.com/wi7a1ian/nip-lab-2018/blob/master/LICENSE.md"
+                }
+            };
+
+            if (description.IsDeprecated)
+            {
+                info.Description += " This API version has been deprecated.";
+            }
+
+            return info;
         }
     }
 }

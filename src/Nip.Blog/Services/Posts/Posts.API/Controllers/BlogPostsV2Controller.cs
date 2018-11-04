@@ -12,14 +12,14 @@ using Nip.Blog.Services.Posts.API.Repositories;
 namespace Nip.Blog.Services.Posts.API.Controllers
 {
     [ApiController]
-    [ApiVersion("1")]
-    [Route("api/v{version:apiVersion}/[controller]")]
-    public class BlogPostsController : ControllerBase
+    [ApiVersion("2")]
+    [Route("api/v{version:apiVersion}/BlogPosts")]
+    public class BlogPostsV2Controller : ControllerBase
     {
-        private readonly ILogger<BlogPostsController> _logger;
+        private readonly ILogger<BlogPostsV2Controller> _logger;
         private readonly IBlogPostRepository _postsRepo;
 
-        public BlogPostsController(ILogger<BlogPostsController> logger, IBlogPostRepository repo)
+        public BlogPostsV2Controller(ILogger<BlogPostsV2Controller> logger, IBlogPostRepository repo)
         {
             _logger = logger;
             _postsRepo = repo;
@@ -41,8 +41,8 @@ namespace Nip.Blog.Services.Posts.API.Controllers
             return Ok(posts);
         }
 
-        // GET api/v1/blogposts/5
-        [HttpGet("{id}", Name = "GetBlogPost")]
+        // GET api/v2/blogposts/5
+        [HttpGet("{id}", Name = "GetBlogPostV2")]
         [ProducesResponseType(200, Type = typeof(BlogPost))]
         [ProducesResponseType(404)]
         public async Task<ActionResult<BlogPost>> Get(long id)
@@ -61,7 +61,7 @@ namespace Nip.Blog.Services.Posts.API.Controllers
             }
         }
 
-        // POST api/v1/blogposts
+        // POST api/v2/blogposts
         [HttpPost]
         [ProducesResponseType(201, Type = typeof(BlogPost))]
         [ProducesResponseType(400)]
@@ -75,7 +75,7 @@ namespace Nip.Blog.Services.Posts.API.Controllers
             return CreatedAtRoute("GetBlogPost", new { id = post.Id }, post);
         }
 
-        // PUT api/v1/blogposts/5
+        // PUT api/v2/blogposts/5
         [HttpPut("{id}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
@@ -101,7 +101,7 @@ namespace Nip.Blog.Services.Posts.API.Controllers
             }
         }
 
-        // DELETE api/v1/blogposts/5
+        // DELETE api/v2/blogposts/5
         [HttpDelete("{id}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
