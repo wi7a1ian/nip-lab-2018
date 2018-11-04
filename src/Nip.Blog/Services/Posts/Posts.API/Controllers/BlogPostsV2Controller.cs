@@ -90,7 +90,7 @@ namespace Nip.Blog.Services.Posts.API.Controllers
             await _postsRepo.AddAsync(post);
 
             _logger.LogInformation("Post {0} has been added", post.Id);
-            return CreatedAtRoute("GetBlogPost", new { id = post.Id }, post);
+            return CreatedAtRoute("GetBlogPostV2", new { id = post.Id }, post);
         }
 
         // PUT api/v2/blogposts/5
