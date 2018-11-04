@@ -23,6 +23,36 @@ namespace Nip.Blog.Services.Posts.API.Repositories
             return _dbSet.ToAsyncEnumerable();
         }
 
+        public virtual async Task<PaginatedItems<T>> GetAllPagedAsync(int pageIndex, int pageSize)
+        {
+            if(pageIndex < 0)
+            {
+                throw new ArgumentException("Cannot be negative", nameof(pageIndex));
+            }
+
+            if (pageSize < 0)
+            {
+                throw new ArgumentException("Cannot be negative", nameof(pageSize));
+            }
+
+            var totalItems = await _dbSet.CountAsync();
+
+            var posts = await _dbSet.OrderByDescending(c => c.Id).Skip(pageIndex * pageSize).Take(pageSize)
+                .ToListAsync();
+
+            var actPageSize = Math.Min(pageSize, totalItems - pageIndex * pageSize);
+
+            var pagedPosts = new PaginatedItems<T>
+            {
+                PageIndex = pageIndex,
+                PageSize = ((actPageSize < 0) ? 0 : actPageSize),
+                TotalItems = totalItems,
+                Items = posts.AsEnumerable()
+            };
+
+            return pagedPosts;
+        }
+
         public virtual async Task<T> GetAsync(long id)
         {
             return await _dbSet.FindAsync(id);
@@ -43,7 +73,7 @@ namespace Nip.Blog.Services.Posts.API.Repositories
                 await _context.SaveChangesAsync();
             }
         }
-
+        
         public virtual async Task DeleteAsync(long id)
         {
             var item = await _dbSet.FindAsync(id);

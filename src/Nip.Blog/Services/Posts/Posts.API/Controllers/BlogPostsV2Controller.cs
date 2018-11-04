@@ -31,27 +31,27 @@ namespace Nip.Blog.Services.Posts.API.Controllers
         [ProducesResponseType(200, Type = typeof(PaginatedItems<BlogPost>))]
         public async Task<IActionResult> Get([FromQuery]int pageIndex = -1, [FromQuery]int pageSize = 5)
         {
-            _logger.LogInformation("Obtaining all the blog posts");
-            var posts = await _postsRepo.GetAllAsync().ToList();
-
-            if (pageIndex < 0 || pageSize < 0)
+            if(pageIndex >= 0 && pageSize < 1)
             {
+                _logger.LogWarning("Incorrect page size provided when retrieving paged blog posts");
+                return BadRequest();
+            }
+            else if (pageIndex < 0)
+            {
+                _logger.LogInformation("Obtaining all the blog posts");
+                var posts = await _postsRepo.GetAllAsync().ToList();
+
                 _logger.LogDebug("Retrieved {0} posts total", posts.Count);
                 return Ok(posts);
             }
             else
             {
-                var actPageSize = Math.Min(pageSize, posts.Count() - pageIndex * pageSize);
-                var isLastPage = posts.Count() <= pageIndex * pageSize + actPageSize;
+                _logger.LogInformation("Obtaining blog posts: page = {0}, size = {1}", pageIndex, pageSize);
 
-                var pagedPosts = new PaginatedItems<BlogPost>
-                {
-                    PageIndex = pageIndex,
-                    PageSize = ((actPageSize < 0) ? 0 : actPageSize),
-                    TotalItems = posts.Count(),
-                    Items = posts.OrderByDescending(c => c.Id).Skip(pageIndex * pageSize).Take(pageSize),
-                    NextPage = (!isLastPage ? Url.Link(null, new { pageIndex = pageIndex + 1, pageSize = pageSize }) : null)
-                };
+                var pagedPosts = await _postsRepo.GetAllPagedAsync(pageIndex, pageSize);
+                var isLastPage = (pagedPosts.TotalItems <= pageIndex * pageSize + pagedPosts.PageSize);
+
+                pagedPosts.NextPage = (!isLastPage ? Url.Link(null, new { pageIndex = pageIndex + 1, pageSize = pageSize }) : null);
 
                 _logger.LogDebug("Retrieved {0} posts from {1} total", pagedPosts.PageSize, pagedPosts.TotalItems);
 

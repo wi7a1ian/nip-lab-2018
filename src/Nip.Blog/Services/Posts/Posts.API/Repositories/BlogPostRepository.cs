@@ -23,7 +23,6 @@ namespace Nip.Blog.Services.Posts.API.Repositories
                 .Where(x => x.Title.Equals(post.Title))
                 .ToAsyncEnumerable().Any();
 
-            // Note: below code exist solely to show how global exception handler works
             if (isTitleAlreadyExisting)
             {
                 throw new BlogPostsDomainException($"Blog post with such title already exist: {post.Title}");
