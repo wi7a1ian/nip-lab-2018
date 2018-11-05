@@ -22,6 +22,13 @@ namespace Nip.Blog.Services.Posts.API
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>()
+                .ConfigureAppConfiguration((hostingContext, config) =>
+                {
+                    config.SetBasePath(Directory.GetCurrentDirectory());
+                    config.AddJsonFile("dbsettings.json", optional: false, reloadOnChange: true);
+                    // Never store passwords or other sensitive data in source code or config files.
+                    // To access DB either run app in user mode (Individual User Accounts) or use Secret Manager tool (> secrets.json)
+                })
                 .ConfigureLogging(logging =>
                 {
                     logging.ClearProviders();

@@ -46,11 +46,32 @@ namespace Nip.Blog.Services.Posts.API
         {
             // CMD> dotnet add package Microsoft.EntityFrameworkCore.Sqlite
 
-            _logger.LogInformation("Adding SQLite-backed BlogPosts database");
-            var connection = @"Data Source=Data/Posts.db";
-            services.AddDbContextPool<BlogPostContext>(opt => opt.UseSqlite(connection)
-                    .ConfigureWarnings(warnings => warnings.Throw(RelationalEventId.QueryClientEvaluationWarning)));
-            
+            var dbType = Configuration.GetValue<string>("SelectedDbType", "in-memory");
+            switch (dbType)
+            {
+                case "MsSQL":
+                    {
+                        _logger.LogInformation("Adding MsSQL-backed BlogPosts database");
+                        services.AddDbContextPool<BlogPostContext>(opt => opt.UseSqlServer(Configuration.GetConnectionString("MsSQLBlogPostsDatabase"))
+                                .ConfigureWarnings(warnings => warnings.Throw(RelationalEventId.QueryClientEvaluationWarning)));
+                        break;
+                    }
+                case "SQLite":
+                    {
+                        _logger.LogInformation("Adding SQLite-backed BlogPosts database");
+                        services.AddDbContextPool<BlogPostContext>(opt => opt.UseSqlite(Configuration.GetConnectionString("SQLiteBlogPostsDatabase"))
+                                .ConfigureWarnings(warnings => warnings.Throw(RelationalEventId.QueryClientEvaluationWarning)));
+                        break;
+                    }
+                default:
+                    {
+                        _logger.LogInformation("Adding in-memory BlogPosts database");
+                        services.AddDbContext<BlogPostContext>(opt => opt.UseInMemoryDatabase("BlogPosts"));
+
+                        break;
+                    }
+            }
+
             // CMD> dotnet ef migrations add InitialCreate
             // CMD> dotnet ef database update
         }

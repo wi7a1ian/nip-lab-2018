@@ -1,0 +1,7 @@
+{
+  "SelectedDbType" :  "SQLite",
+  "ConnectionStrings": {
+    "MsSQLBlogPostsDatabase": "Server=(localdb)\\mssqllocaldb;Database=BlogPostsDb;Trusted_Connection=True;ConnectRetryCount=0",
+    "SQLiteBlogPostsDatabase": "Data Source=Data/Posts.db"
+  }
+}
