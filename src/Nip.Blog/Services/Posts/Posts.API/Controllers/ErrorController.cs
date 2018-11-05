@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Nip.Blog.Services.Posts.API.Exceptions;
 
@@ -50,6 +51,20 @@ namespace Posts.API.Controllers
                     problemDetails.Errors.Add("DomainValidations", new string[] { exceptionThatOccurred.Message.ToString() });
 
                     return BadRequest(problemDetails);
+                }
+                else if(exceptionThatOccurred.GetType() == typeof(DbUpdateConcurrencyException))
+                {
+                    _logger.LogError(exceptionThatOccurred, "Concurrency exception was thrown from {0}", routeWhereExceptionOccurred);
+
+                    var problemDetails = new
+                    {
+                        Error = $"{exceptionThatOccurred.Message}. Please Retry",
+                        Status = StatusCodes.Status503ServiceUnavailable,
+                        Details = _environment.IsDevelopment() ? exceptionThatOccurred.ToString() : null,
+                        Instance = routeWhereExceptionOccurred
+                    };
+
+                    return StatusCode((int)HttpStatusCode.ServiceUnavailable, problemDetails);
                 }
                 else
                 {
