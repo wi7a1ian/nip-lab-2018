@@ -364,7 +364,7 @@
 	1. *(optional) Try adding a provider that support writing logs to a file. Google `logging.AddFile(...);`*
 
 ### Exercise set #6 - persistent store & initialization
-- ORM frameworks like EntityFramework Core not only allow you to easly map database objects to models, but easily swap database providers when needed, i.e: from SQLite > MsSQL > PostgreSQL > MySQL. It also handle database consistency and upgrades (aka migrations).
+- ORM frameworks like EntityFramework Core not only allow you to easly map database objects to models, but also easily swap database providers when needed, i.e: from SQLite > MsSQL > PostgreSQL > MySQL. It also handle database consistency and upgrades (aka migrations).
 - Using Visual Studio:
 	1. Update `Startup.cs` and switch from in-memory database to MsSQL provider.
 		```
@@ -514,3 +514,56 @@
 	1. Duplicate collection of all your previous requests and rename it to `<collection> v2`
 	1. Update all the hyperlinks under that collection to target v2 version of the API now. 
 	1. Confirm `GET POST PUT DELETE` requests work and that `POST` redirects you to the newly created resource under v2 endpoint, i.e: `Location: https://localhost:5001/api/v2/BlogPosts/6`
+
+### Exercise set #8 - paging 
+- From now on we will focus on v2 version of the controller.
+- Using Visual Studio:
+	1. Add new model called `PaginatedItems`:
+		```csharp
+		public class PaginatedItems<T> 
+		{
+			public int PageIndex { get; set; }
+			public int PageSize { get; set; }
+			public long TotalItems { get; set; }
+			public IEnumerable<T> Items { get; set; }
+			public string NextPage { get; set; }
+		}
+		```
+	1. Update `Get()` method in `BlogPostsV2Controller` to handle pagination when requested. You should be able to fill the gaps in the code:
+		```
+		// GET api/v2/blogposts[?pageIndex=3&pageSize=10]
+		[HttpGet]
+		[ProducesResponseType(400)]
+		[ProducesResponseType(200, Type = typeof(IEnumerable<BlogPost>))]
+		[ProducesResponseType(200, Type = typeof(PaginatedItems<BlogPost>))]
+		public async Task<IActionResult> Get([FromQuery]int pageIndex = -1, [FromQuery]int pageSize = 5)
+		{
+			var posts = await _postsRepo.GetAllAsync().ToList();
+			if (pageIndex < 0) {
+			  	return Ok(posts);
+			} else {
+				...
+				var pagedPosts = new PaginatedItems<BlogPost>{ ... };
+				return Ok(pagedPosts);
+		  	}
+		}
+		```
+	1. Chunking the list of posts using LINQ may look like this: 
+		```csharp
+		pagedPosts.Items = posts.OrderByDescending(c => c.Id).Skip(pageIndex * pageSize).Take(pageSize),
+		```
+	1. Generating next URL should look like this: 
+		```csharp
+		pagedPosts.NextPage = (!isLastPage ? Url.Link(null, new { pageIndex = pageIndex + 1, pageSize = pageSize }) : null)
+		```
+	1. Build and run the server
+- Using Postman:
+	1. Query `GET https://localhost:5001/api/v2/blogposts` and confirm all the posts are returned.
+	1. Query `GET https://localhost:5001/api/v2/blogposts?pageIndex=0&pageSize=5` and confirm that max 5 records are returned.
+	1. If your test data has only few posts, just add more. 
+	1. Confirm valid `NextPage` URI is generated when there are more pages available. Should be null if not.
+		```
+		...
+		"NextPage": "https://localhost:5001/api/v2/blogposts?pageIndex=1&pageSize=5"
+		```
+	1. Confirm that query `GET https://localhost:5001/api/v2/blogposts?pageIndex=9000&pageSize=9000` returns empty set.
