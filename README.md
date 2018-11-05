@@ -428,16 +428,21 @@
 				Task DeleteAsync(long id);
 			}
 		```
-	1. Extract out from `BlogPostsController.cs` everything that is connected with accessing databsae under `BlogPostRepository.cs`, long story short: now the only class that should use `BlogPostContext` is `BlogPostRepository`
+	1. Extract out from `BlogPostsController.cs` everything that is connected with accessing database under `BlogPostRepository.cs`, long story short: now the only class that should use `BlogPostContext` is `BlogPostRepository`
 		```csharp
 			private readonly BlogPostContext _context;
-			public BlogPostRepository(BlogPostContext context)
-			{
+			public BlogPostRepository(BlogPostContext context) {
 				_context = context;
 			}
+			
+			public IAsyncEnumerable<T> GetAllAsync() {
+				return _dbSet.ToAsyncEnumerable();
+			}
+			
+			public async Task<T> GetAsync(long id) {
 			...
 		```
-	1. The `BlogPostsController` shoul dnow expect `IBlogPostRepository` to be injected by the build-in Dependency Injection Container, hence its constructor should look like this:
+	1. The `BlogPostsController` should now expect `IBlogPostRepository` to be injected by the build-in Dependency Injection Container, hence its constructor should look like this:
 		```csharp
 			private readonly ILogger<BlogPostsController> _logger;
 			private readonly IBlogPostRepository _postsRepo;
@@ -567,3 +572,60 @@
 		"NextPage": "https://localhost:5001/api/v2/blogposts?pageIndex=1&pageSize=5"
 		```
 	1. Confirm that query `GET https://localhost:5001/api/v2/blogposts?pageIndex=9000&pageSize=9000` returns empty set.
+- Using Visual Studio:
+	1. Extract out the paging logic to the `BlogPostsRepository`. The new `IBlogPostsRepository` method can look like this:
+		```csharp
+		Task<PaginatedItems<BlogPost>> GetAllPagedAsync(int pageIndex, int pageSize);
+		```
+	1. Make use of the fact that repository is working on IQueryable<T> instead of IEnumerable<T>. You can get post count as a separate query:
+		```csharp
+		var totalItems = await _context.CountAsync();
+		var posts = await _context.OrderByDescending(c => c.Id).Skip(pageIndex * pageSize).Take(pageSize).ToListAsync();
+		```
+	1. Build and run the server
+	1. Request few pages using `GET https://localhost:5001/api/v2/blogposts?pageIndex=0&pageSize=5` and confirm nothing changed.
+
+### Updated requirements
+- API v2 - another endpoint
+
+| API | Description | Request body | Response body | HTTP status code |
+|-|:-|:-:|:-:|:-:|
+| GET /api/v2/blogposts/withtitle/\{title\}[?pageIndex=\{idx\}&pageSize=\{size\}] | Get page of blog posts filtered by title | - | \{ one page of filtered posts \} | 200 OK |
+
+### Exercise set #9 - filtering 
+- Using Visual Studio:
+	1. Update `GetAllPagedAsync()` method in the IBlogPostsRepository interface. It can now look like this:
+		```csharp
+		Task<PaginatedItems<BlogPost>> GetAllPagedAsync(int pageIndex, int pageSize, Expression<Func<T, bool>> filter = null);
+		```
+	1. The logic for paging can be updated to include only results that fulfil filter conditions:
+		```csharp
+		...
+		IQueryable<T> query = _context;
+		if (filter != null) 
+			query = query.Where(filter);
+		var totalItems = await query.CountAsync();
+		var posts = await query.OrderByDescending(c => c.Id).Skip(pageIndex * pageSize).Take(pageSize);
+		...
+		```
+	1. **Add** new `Get(...)` method to the `BlogPostsV2Controller` that will handle filtering:
+		```csharp
+		[HttpGet("withtitle/{title:minlength(1)}")]
+		[ProducesResponseType(400)]
+		[ProducesResponseType(200, Type = typeof(PaginatedItems<BlogPost>))]
+		public async Task<IActionResult> Get(string title, [FromQuery]int pageIndex = 0, [FromQuery]int pageSize = 5) {
+			...
+			var pagedPosts = await _postsRepo.GetAllPagedAsync(pageIndex, pageSize, x => x.Title.Contains(title));
+			...
+		```
+	1. Build and run the server
+- Using Postman:
+	1. Request posts that contain some sequence of characters in the title. Example:
+		```
+		GET https://localhost:5001/api/v2/blogposts/withtitle/derp
+		```
+	1. Do the same request but with paging (add more posts that fit the condition if there are not too many results)
+		```
+		GET https://localhost:5001/api/v2/blogposts/withtitle/derp?pageIndex=0&pageSize=2
+		```
+	1. Confirm sending empty title filter does result in `400 bad request` status code.
