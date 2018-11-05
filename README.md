@@ -629,3 +629,60 @@
 		GET https://localhost:5001/api/v2/blogposts/withtitle/derp?pageIndex=0&pageSize=2
 		```
 	1. Confirm sending empty title filter does result in `400 bad request` status code.
+
+### Updated requirements
+- API v2:
+
+| API | Description | Request body | Response body | HTTP status code |
+|-|:-|:-:|:-:|:-:|
+| GET /api/v1/blogposts/\{id\}/comments | Get comments for blog post | - | \{ array of comments \} | 200 OK |
+| POST /api/v1/blogposts/\{id\}/comments | Add a new blog post comment | { body } | \{ comment \} | 201 Created |
+
+### Exercise set #10 - add blog post comments 
+- Using Visual Studio:
+	1. Update `BlogPost` model with another property representing collection of blog posts: 
+		```csharp
+		public ICollection<BlogPostComment> Comments { get; set; }
+		```
+	1. Add new `BlogPostComment` model that looks like this:
+		```csharp
+		public long Id { get; set; }
+	
+		[Required]
+        	[StringLength(24, MinimumLength = 3)]
+		public string Author { get; set; }
+		
+		[StringLength(256)]
+		public string Content { get; set; }
+		```
+	1. Add new Entity Framework migration in order to generate code responsible for upgrading the database and update the database.
+		```
+		dotnet ef migrations add AddComments
+		dotnet ef database update
+		```
+	1. Update `IBlogPostsRepository` and its implementation with two more methods:
+		```csharp
+		Task<IEnumerable<BlogPostComment>> GetCommentsAsync(long blogPostId);
+		Task AddCommentAsync(long blogPostId, BlogPostComment comment);
+		```
+	1. When querying for blog post and all its comments, you need to explicitly tell EF Core to include those comments:
+		```csharp
+		var post = await _context.BlogPosts.Include(x => x.Comments).Where( x => x.Id == blogPostId).FirstAsync();
+		```
+	1. Add two more methods to the `BlogPostsV2Controller`, one for querying for all the comments for specific blog post and one for submitting new comment.
+		```csharp
+		[...]
+		[HttpGet("{id}/comments", Name = "GetBlogPostComments")]
+		public async Task<ActionResult<IEnumerable<BlogPostComment>>> GetAllComments(long id) { ... }
+	
+		[...]
+		[HttpPost("{id}/comments")]
+		public async Task<IActionResult> PostComment(long id, [FromBody] BlogPostComment comment){ ... }
+		```
+	1. Build and run the server
+- Using Postman:
+	1. Submit few comments using `POST https://localhost:5001/api/v2/blogposts/0/comments`. Check if it does redirect you to a collection of comments for that specific blog post.
+	1. Query for all the comments for specific blog post: `GET https://localhost:5001/api/v2/blogposts/0/comments`
+	1. Query for comments from nonexisting blog post and confirm you get `404 status code`.
+
+### Exercise set #11 - add concurrency token, aka row-version
