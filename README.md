@@ -387,7 +387,7 @@
 		var connection = @"Data Source=Data/Posts.db";
 		services.AddDbContextPool<BlogPostContext>(opt => opt.UseSqlite(connection))
 		```
-	1. For this to wotk you need to install `Microsoft.EntityFrameworkCore.Sqlite` nuget package, either by installing via Nuget Package Manager or using command line: `dotnet add package Microsoft.EntityFrameworkCore.Sqlite`
+	1. For this to work you need to install `Microsoft.EntityFrameworkCore.Sqlite` nuget package, either by installing via Nuget Package Manager or using command line: `dotnet add package Microsoft.EntityFrameworkCore.Sqlite`
 	1. Ensure that project builds.
 	1. We need to update selected SQLIte database file with the migration instructions generated before.
 		```
@@ -465,3 +465,52 @@
 ### Exercise set #8 - new web API version - v2
 - We talked about API versioning and how much we care about backward portability to make consumers/clients of our RESTful APIs happy.
 - We are going o add v2 controller that will alter behaviour for retrieving collection of blog posts and there we will use paging instead.
+- Using Visual Studio:
+	1. Before we proceed we need to install two nuget packages: `Microsoft.AspNetCore.Mvc.Versioning` and `Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer` using either NuGet Package Manager or using cmd:
+		```
+		dotnet add package Microsoft.AspNetCore.Mvc.Versioning
+		dotnet add package Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer
+		```
+	1. Update `Startup` > `ConfigureServices` and "teach" Swagger generator how to create separate documentation for each version of the controller endpoints:
+		```csharp
+		services.AddMvcCore().AddVersionedApiExplorer(
+			options => {
+			    options.GroupNameFormat = "'v'VVV";
+			    options.SubstituteApiVersionInUrl = true;
+			});
+            	services.AddApiVersioning(options => options.ReportApiVersions = true);
+		services.AddSwaggerGen(
+			options => {
+			    var provider = services.BuildServiceProvider().GetRequiredService<IApiVersionDescriptionProvider>();
+			    foreach (var description in provider.ApiVersionDescriptions)
+			    {
+				options.SwaggerDoc(description.GroupName,  new Info{ ... Version = description.ApiVersion.ToString(), ... } );
+			    }
+			});
+		```
+	1. Update `Startup` > `Configure` and tell Swagger UI where to find documentations:
+		```csharp
+		public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApiVersionDescriptionProvider apiVersionDescProvider) {
+			app.UseSwaggerUI(c => {
+				foreach (var description in apiVersionDescProvider.ApiVersionDescriptions) {
+				    c.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", description.GroupName);
+				}
+				c.RoutePrefix = string.Empty; // serve the Swagger UI at the app's root
+			});
+		...
+		```
+	1. Modify `BlogPostsController` and replace `[Route("api/v1/[controller]")]` with this:
+		```csharp
+		[ApiVersion("1")]
+		[Route("api/v{version:apiVersion}/BlogPosts")]
+		```
+	1. Build & run the server. Everything should work as before. Confirm Swagger UI generated same page under `https://localhost:5001/`.
+	1. Clone `BlogPostsController.cs` and rename it to `BlogPostsV2Controller.cs`. Open it and change everything that was connected with v1 to v2. Examples:
+		- `[ApiVersion("2")]` 
+		- `[HttpGet("{id}", Name = "GetBlogPostV2")]`
+		- `return CreatedAtRoute("GetBlogPostV2", new { id = post.Id }, post);`
+	1. Build & run the server. Everything should work as before with exception that in Swagger UI there should be a dropdown at the top right corner where you can see specification for either V1 or V2 of the API.
+- Using Postman:
+	1. Duplicate collection of all your previous requests and rename it to `<collection> v2`
+	1. Update all the hyperlinks under that collection to target v2 version of the API now. 
+	1. Confirm `GET POST PUT DELETE` requests work and that `POST` redirects you to the newly created resource under v2 endpoint, i.e: `Location: https://localhost:5001/api/v2/BlogPosts/6`
