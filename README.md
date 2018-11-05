@@ -579,8 +579,8 @@
 		```
 	1. Make use of the fact that repository is working on IQueryable<T> instead of IEnumerable<T>. You can get post count as a separate query:
 		```csharp
-		var totalItems = await _context.CountAsync();
-		var posts = await _context.OrderByDescending(c => c.Id).Skip(pageIndex * pageSize).Take(pageSize).ToListAsync();
+		var totalItems = await _context.BlogPosts.CountAsync();
+		var posts = await _context.BlogPosts.OrderByDescending(c => c.Id).Skip(pageIndex * pageSize).Take(pageSize).ToListAsync();
 		```
 	1. Build and run the server
 	1. Request few pages using `GET https://localhost:5001/api/v2/blogposts?pageIndex=0&pageSize=5` and confirm nothing changed.
@@ -596,7 +596,7 @@
 - Using Visual Studio:
 	1. Update `GetAllPagedAsync()` method in the IBlogPostsRepository interface. It can now look like this:
 		```csharp
-		Task<PaginatedItems<BlogPost>> GetAllPagedAsync(int pageIndex, int pageSize, Expression<Func<T, bool>> filter = null);
+		Task<PaginatedItems<BlogPost>> GetAllPagedAsync(int pageIndex, int pageSize, Expression<Func<BlogPost, bool>> filter = null);
 		```
 	1. The logic for paging can be updated to include only results that fulfil filter conditions:
 		```csharp
