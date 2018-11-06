@@ -303,6 +303,7 @@
 		```
 - Using browser:
 	1. Open Swagger UI and check if HTTP response codes are now listed.
+
 ### Exercise set #4 - Global exception handler
 - It is a good practice to always return consumable JSON error representation when building RESTful WebAPI.
 - Using Visual Studio:
@@ -315,7 +316,10 @@
 		{ "error": "Unhandled exception" }
 		```
 		```csharp
-		 return StatusCode(..., new {...})
+		[AllowAnonymous]
+		[ApiExplorerSettings(IgnoreApi = true)]
+		public IActionResult Index() {
+			return StatusCode(..., new {...});
 		```
 	1. Fake one of the methods in `BlogPostsController` and throw exception from within, i.e:
 		```csharp
