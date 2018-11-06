@@ -398,19 +398,20 @@
 	1. Download portable version of [SQLiteStudio](https://sqlitestudio.pl/files/sqlitestudio3/complete/win32/SQLiteStudio-3.2.1.zip) and open the `Data/Posts.db` file we used as persistent store. Confirm blog posts are in the `BlogPost` table.
 	1. When developing the web API, it is a good idea to initialize (aka seed) empty database with test data. Do so either in `Program.cs` (harder but recommended) or in `Startup.cs` (easier):
 		```csharp
-		if (env.IsDevelopment())
-		{
-			context.Database.EnsureCreated();
-			if(!context.BlogPosts.Any())
-			{
-				var posts = new List<BlogPost>
+		Configure(..., BlogPostContext context) { // Note: dependency injection working on a method!
+			if (env.IsDevelopment()) {
+				context.Database.EnsureCreated();
+				if(!context.BlogPosts.Any())
 				{
-				...
-				};
-				context.BlogPosts.AddRange(posts);
-				context.SaveChanges();
+					var posts = new List<BlogPost>
+					{
+					...
+					};
+					context.BlogPosts.AddRange(posts);
+					context.SaveChanges();
+				}
 			}
-		}
+			...
 		```
 	1. Delete `Data/Posts.db` file and run the server. Database should be recreated using migration instructions and should also be populated with initial data. Run `GET https://localhost:5001/api/v1/blogposts` to confirm.
 ### Exercise set #7 - repository pattern
