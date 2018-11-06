@@ -372,8 +372,8 @@
 - Using Visual Studio:
 	1. Update `Startup.cs` and switch from in-memory database to MsSQL provider.
 		```
-		var connection = @"Server=(localdb)\mssqllocaldb;Database=BlogPostsDb;Trusted_Connection=True;ConnectRetryCount=0";
-		services.AddDbContextPool<BlogPostContext>(options => options.UseSqlServer(connection));
+		var con = @"Server=(localdb)\mssqllocaldb;Database=BlogPostsDb;Trusted_Connection=True;ConnectRetryCount=0";
+		services.AddDbContextPool<BlogPostContext>(options => options.UseSqlServer(con));
 		```
 	1. Ensure that project builds.
 	1. We are going to use Code First workflow and generate database schema from our code (DBContexts and models). Add initial database migration and update local instance of MsSQL database (you should have it installed) accordingly.
@@ -491,10 +491,12 @@
             	services.AddApiVersioning(options => options.ReportApiVersions = true);
 		services.AddSwaggerGen(
 			options => {
-			    var provider = services.BuildServiceProvider().GetRequiredService<IApiVersionDescriptionProvider>();
+			    var provider = services.BuildServiceProvider()
+			    	.GetRequiredService<IApiVersionDescriptionProvider>();
 			    foreach (var description in provider.ApiVersionDescriptions)
 			    {
-				options.SwaggerDoc(description.GroupName,  new Info{ ... Version = description.ApiVersion.ToString(), ... } );
+				options.SwaggerDoc(description.GroupName,  
+					new Info{ ... Version = description.ApiVersion.ToString(), ... } );
 			    }
 			});
 		```
@@ -503,7 +505,8 @@
 		public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApiVersionDescriptionProvider apiVersionDescProvider) {
 			app.UseSwaggerUI(c => {
 				foreach (var description in apiVersionDescProvider.ApiVersionDescriptions) {
-				    c.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", description.GroupName);
+				    c.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", 
+					description.GroupName);
 				}
 				c.RoutePrefix = string.Empty; // serve the Swagger UI at the app's root
 			});
@@ -564,7 +567,8 @@
 		```
 	1. Generating next URL should look like this: 
 		```csharp
-		pagedPosts.NextPage = (!isLastPage ? Url.Link(null, new { pageIndex = pageIndex + 1, pageSize = pageSize }) : null)
+		pagedPosts.NextPage = (!isLastPage ? Url.Link(null, new { pageIndex = pageIndex + 1, pageSize = pageSize }) 
+			: null)
 		```
 	1. Build and run the server
 - Using Postman:
@@ -585,7 +589,9 @@
 	1. Make use of the fact that repository is working on IQueryable<T> instead of IEnumerable<T>. You can get post count as a separate query:
 		```csharp
 		var totalItems = await _context.BlogPosts.CountAsync();
-		var posts = await _context.BlogPosts.OrderByDescending(c => c.Id).Skip(pageIndex * pageSize).Take(pageSize).ToListAsync();
+		var posts = await _context.BlogPosts
+				.OrderByDescending(c => c.Id).Skip(pageIndex * pageSize).Take(pageSize)
+				.ToListAsync();
 		```
 	1. Build and run the server
 	1. Request few pages using `GET https://localhost:5001/api/v2/blogposts?pageIndex=0&pageSize=5` and confirm nothing changed.
@@ -599,9 +605,9 @@
 
 ### Exercise set #9 - filtering 
 - Using Visual Studio:
-	1. Update `GetAllPagedAsync()` method in the IBlogPostsRepository interface. It can now look like this:
+	1. Update `GetAllPagedAsync()` method in the IBlogPostsRepository interface. It can now be extended with filter expression:
 		```csharp
-		Task<PaginatedItems<BlogPost>> GetAllPagedAsync(int pageIndex, int pageSize, Expression<Func<BlogPost, bool>> filter = null);
+		Task<PaginatedItems<BlogPost>> GetAllPagedAsync(..., Expression<Func<BlogPost, bool>> filter = null);
 		```
 	1. The logic for paging can be updated to include only results that fulfil filter conditions:
 		```csharp
@@ -620,7 +626,8 @@
 		[ProducesResponseType(200, Type = typeof(PaginatedItems<BlogPost>))]
 		public async Task<IActionResult> Get(string title, [FromQuery]int pageIndex = 0, [FromQuery]int pageSize = 5) {
 			...
-			var pagedPosts = await _postsRepo.GetAllPagedAsync(pageIndex, pageSize, x => x.Title.Contains(title));
+			var pagedPosts = await _postsRepo
+						.GetAllPagedAsync(pageIndex, pageSize, x => x.Title.Contains(title));
 			...
 		```
 	1. Build and run the server
