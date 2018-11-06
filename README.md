@@ -502,7 +502,8 @@
 		```
 	1. Update `Startup` > `Configure` and tell Swagger UI where to find documentations:
 		```csharp
-		public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApiVersionDescriptionProvider apiVersionDescProvider) {
+		public void Configure(IApplicationBuilder app, IHostingEnvironment env, 
+					IApiVersionDescriptionProvider apiVersionDescProvider) {
 			app.UseSwaggerUI(c => {
 				foreach (var description in apiVersionDescProvider.ApiVersionDescriptions) {
 				    c.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", 
@@ -567,8 +568,8 @@
 		```
 	1. Generating next URL should look like this: 
 		```csharp
-		pagedPosts.NextPage = (!isLastPage ? Url.Link(null, new { pageIndex = pageIndex + 1, pageSize = pageSize }) 
-			: null)
+		pagedPosts.NextPage = 
+			(!isLastPage ? Url.Link(null, new { pageIndex = pageIndex + 1, pageSize = pageSize }) : null)
 		```
 	1. Build and run the server
 - Using Postman:
@@ -624,7 +625,7 @@
 		[HttpGet("withtitle/{title:minlength(1)}")]
 		[ProducesResponseType(400)]
 		[ProducesResponseType(200, Type = typeof(PaginatedItems<BlogPost>))]
-		public async Task<IActionResult> Get(string title, [FromQuery]int pageIndex = 0, [FromQuery]int pageSize = 5) {
+		public async Task<IActionResult> Get(string title, [FromQuery]int pageIndex=0, [FromQuery]int pageSize=5){
 			...
 			var pagedPosts = await _postsRepo
 						.GetAllPagedAsync(pageIndex, pageSize, x => x.Title.Contains(title));
