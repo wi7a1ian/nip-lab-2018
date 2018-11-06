@@ -435,11 +435,11 @@
 				_context = context;
 			}
 			
-			public IAsyncEnumerable<T> GetAllAsync() {
-				return _dbSet.ToAsyncEnumerable();
+			public IAsyncEnumerable<BlogPost> GetAllAsync() {
+				return _context.ToAsyncEnumerable();
 			}
 			
-			public async Task<T> GetAsync(long id) {
+			public async Task<BlogPost> GetAsync(long id) {
 			...
 		```
 	1. The `BlogPostsController` should now expect `IBlogPostRepository` to be injected by the build-in Dependency Injection Container, hence its constructor should look like this:
