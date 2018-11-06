@@ -398,7 +398,7 @@
 	1. Download portable version of [SQLiteStudio](https://sqlitestudio.pl/files/sqlitestudio3/complete/win32/SQLiteStudio-3.2.1.zip) and open the `Data/Posts.db` file we used as persistent store. Confirm blog posts are in the `BlogPost` table.
 	1. When developing the web API, it is a good idea to initialize (aka seed) empty database with test data. Do so either in `Program.cs` (harder but recommended) or in `Startup.cs` (easier):
 		```csharp
-		if (!env.IsDevelopment())
+		if (env.IsDevelopment())
 		{
 			context.Database.EnsureCreated();
 			if(!context.BlogPosts.Any())
