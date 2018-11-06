@@ -601,11 +601,11 @@
 	1. The logic for paging can be updated to include only results that fulfil filter conditions:
 		```csharp
 		...
-		IQueryable<T> query = _context;
+		IQueryable<BlogPost> query = _context.BlogPosts;
 		if (filter != null) 
 			query = query.Where(filter);
 		var totalItems = await query.CountAsync();
-		var posts = await query.OrderByDescending(c => c.Id).Skip(pageIndex * pageSize).Take(pageSize);
+		var posts = query.OrderByDescending(c => c.Id).Skip(pageIndex * pageSize).Take(pageSize);
 		...
 		```
 	1. **Add** new `Get(...)` method to the `BlogPostsV2Controller` that will handle filtering:
