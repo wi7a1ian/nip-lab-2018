@@ -749,7 +749,8 @@
 - Using Visual Studio:
 	1. Right click on the `Posts` folder and add new project. Choose `Visual C#` > `.NET Core` > `xUnit Test Project` and name it `Posts.UnitTests`.
 	1. Right click on the `Posts.UnitTests` project and click `Add` > `Reference...` and check `Posts.API` project.
-	1. Add Moq nuget package to the `Posts.UnitTests` project. We will need it for faking IBlogPostRepository behavior.
+	1. Add `Moq` nuget package to the `Posts.UnitTests` project. We will need it for faking IBlogPostRepository behavior.
+	1. Add `Microsoft.AspNetCore.Mvc.Core` nuget package in the same version as `Posts.API` project has it referenced (*probably: v2.1.1*).
 	1. Rename `UnitTest1.cs` to `BlogPostsV2ControllerTest.cs` and add such method to the class body:
 		```csharp
 		[Fact]
