@@ -707,8 +707,8 @@
 		[IgnoreDataMember]
 		public byte[] RowVersion { get; set; }
 		```
-	1. Add new migration and update database
-	1. Note: currently SQLite provider for EF Core does not support row-version and concurrency tokens. It order for it to work you need to switch to enterprise database like MsSQL. Only then you will see that with each update of any blog post the `RowVersion` column gets incremented.
+	1. Add new migration and update database.
+	1. *Note: currently SQLite provider for EF Core does not support row-version and concurrency tokens. It order for it to work you need to switch to enterprise database like MsSQL. Only then you will see that with each update of any blog post the `RowVersion` column gets incremented. There is one problem though: most of our migrations were made when using SQLite and there is a bug with one of the migrations that create `BlogPostComment` table where the primary key is setup with auto-increment parameter. Unfortunatelly MsSQL provider do not recognize this parameter and do not translate it to corresponding `IDENTITY()` command. You need to remove all migrations via `dotnet ef migrations remove`, drop database `dotnet ef database drop` and then create new initial migration that has proper instructions for MsSQL. That is the only way to make it to work.*
 	1. When race condition happens and one of the requests will try to modify row in outdated version, an `DbUpdateConcurrencyException` will be thrown. You may want to handle it in `ErrorController` and return 503 that tells the client to simply retry its request.
 
 ### Exercise set #12 - add configuration file
