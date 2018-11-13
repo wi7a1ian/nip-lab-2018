@@ -2,10 +2,11 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Nip.Blog.Services.Posts.API.Data;
 
-namespace Nip.Blog.Services.Posts.API.Data.Migrations
+namespace Nip.Blog.Services.Posts.API.Migrations
 {
     [DbContext(typeof(BlogPostContext))]
     partial class BlogPostContextModelSnapshot : ModelSnapshot
@@ -14,12 +15,15 @@ namespace Nip.Blog.Services.Posts.API.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "2.1.4-rtm-31024");
+                .HasAnnotation("ProductVersion", "2.1.4-rtm-31024")
+                .HasAnnotation("Relational:MaxIdentifierLength", 128)
+                .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
             modelBuilder.Entity("Nip.Blog.Services.Posts.API.Models.BlogPost", b =>
                 {
                     b.Property<long>("Id")
-                        .ValueGeneratedOnAdd();
+                        .ValueGeneratedOnAdd()
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("Description")
                         .HasMaxLength(4096);
@@ -40,7 +44,8 @@ namespace Nip.Blog.Services.Posts.API.Data.Migrations
             modelBuilder.Entity("Nip.Blog.Services.Posts.API.Models.BlogPostComment", b =>
                 {
                     b.Property<long>("Id")
-                        .ValueGeneratedOnAdd();
+                        .ValueGeneratedOnAdd()
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("Author");
 
