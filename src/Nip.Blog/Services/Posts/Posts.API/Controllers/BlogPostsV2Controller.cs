@@ -52,7 +52,7 @@ namespace Nip.Blog.Services.Posts.API.Controllers
                 var pagedPosts = await _postsRepo.GetAllPagedAsync(pageIndex, pageSize);
                 var isLastPage = (pagedPosts.TotalItems <= pageIndex * pageSize + pagedPosts.PageSize);
 
-                pagedPosts.NextPage = (!isLastPage ? Url.Link(null, new { pageIndex = pageIndex + 1, pageSize = pageSize }) : null);
+                pagedPosts.NextPage = (!isLastPage ? Url?.Link(null, new { pageIndex = pageIndex + 1, pageSize = pageSize }) : null);
 
                 _logger.LogDebug("Retrieved {0} posts from {1} total", pagedPosts.PageSize, pagedPosts.TotalItems);
 
@@ -79,7 +79,7 @@ namespace Nip.Blog.Services.Posts.API.Controllers
                 var pagedPosts = await _postsRepo.GetAllPagedAsync(pageIndex, pageSize, x => x.Title.Contains(title));
                 var isLastPage = (pagedPosts.TotalItems <= pageIndex * pageSize + pagedPosts.PageSize);
 
-                pagedPosts.NextPage = (!isLastPage ? Url.Link(null, new { pageIndex = pageIndex + 1, pageSize = pageSize }) : null);
+                pagedPosts.NextPage = (!isLastPage ? Url?.Link(null, new { pageIndex = pageIndex + 1, pageSize = pageSize }) : null);
 
                 _logger.LogDebug("Retrieved {0} posts from {1} total", pagedPosts.PageSize, pagedPosts.TotalItems);
 
