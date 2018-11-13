@@ -778,7 +778,7 @@
 		Make it to compile by resolving missing dependencies and adjusting the test body if needed.
 	1. The first section does setup `ILogger` and `IBlogPostepository` mocks. We can configure the behavior of objects on which interfaces our controller depends on. In the example above we tell mocking framework to just create dummy `ILogger` instance that does nothing and then create an object implementing `IBlogPostRepository` that returns empty `PaginatedItems` when our controller calls `GetAllPagedAsync()` method with any parameters. In next section we then call `Get(pagIndex, pageSize)` method from the controller which should provide us paginated result. In the last section we unwrap the result and validate if the object returned is the one we passed from the repository mock.
 	1. Open *Test Explorer* window and run that test. It should be *green*. If it's not *green* then make it *green*... 
-	1. Try adding two more tests, one for `Post(...)` and one for `Delete(...)` method. They can be either negative or positive ones. Naming convention does not matter at this point. Here are some code snippets (I hope this helps):
+	1. Try adding two more tests, one for `Post(...)` and one for `Delete(...)` method. They can be either negative or positive ones. Naming convention does not matter at this point. More info about `Assert` can be found by googling `xUnit` and more info about mockig can be found by googling `Moq`. Here are some code snippets (I hope this helps):
 	 	```csharp
 		mockRepo.Setup(repo => repo.GetAsync(It.IsAny<int>()))
 			.ReturnsAsync((BlogPost)null);
@@ -803,4 +803,4 @@
 	    	Assert.Equal(somePost, valueResult);
 	    	mockRepo.Verify();
 		```
-	1. Confirm all three tests are runnable, do not fail and make sense.
+	1. Confirm all three tests are runnable, do not fail and make any sense.
