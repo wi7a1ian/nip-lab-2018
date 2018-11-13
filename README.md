@@ -744,3 +744,63 @@
 	1. Do the same for the second database type.
 
 		```
+### Exercise set #13 - test controller logic
+- Since we added repository abstraction layer, we can write unit tests for the controller where we mock repository interface and check if the controllers behave correctly.
+- Using Visual Studio:
+	1. Right click on the `Posts` folder and add new project. Choose `Visual C#` > `.NET Core` > `xUnit Test Project` and name it `Posts.UnitTests`.
+	1. Right click on the `Posts.UnitTests` project and click `Add` > `Reference...` and check `Posts.API` project.
+	1. Add Moq nuget package to the `Posts.UnitTests` project. We will need it for faking IBlogPostRepository behavior.
+	1. Rename `UnitTest1.cs` to `BlogPostsV2ControllerTest.cs` and add such method to the class body:
+		```csharp
+		[Fact]
+		public async Task ShouldReturnEmptyPageWhenCallingGetWithParamsOnEmptyRepo()
+		{
+		    // Given
+		    var mockLogger = new Mock<ILogger<BlogPostsV2Controller>>();
+		    var mockRepo = new Mock<IBlogPostRepository>();
+		    mockRepo.Setup(repo => repo.GetAllPagedAsync(It.IsAny<int>(), It.IsAny<int>(), null))
+			.ReturnsAsync(new PaginatedItems<BlogPost>());
+		    var controller = new BlogPostsV2Controller(mockLogger.Object, mockRepo.Object);
+
+		    // When
+		    var result = await controller.Get(0, 5);
+
+		    // Then
+		    var actionResult = Assert.IsType<OkObjectResult>(result);
+		    var returnValue = Assert.IsType<PaginatedItems<BlogPost>>(actionResult.Value);
+		    Assert.Null(returnValue.Items);
+		    Assert.Equal(0, returnValue.PageIndex);
+		    Assert.Equal(0, returnValue.PageSize);
+		    Assert.Equal(0, returnValue.TotalItems);
+		    Assert.Null(returnValue.NextPage);
+		}
+		```
+		Make it to compile by resolving missing dependencies and adjusting the test body if needed.
+	1. The first section does setup `ILogger` and `IBlogPostepository` mocks. We can configure the behavior of objects on which interfaces our controller depends on. In the example above we tell mocking framework to just create dummy `ILogger` instance that does nothing and then create an object implementing `IBlogPostRepository` that returns empty `PaginatedItems` when our controller calls `GetAllPagedAsync()` method with any parameters. In next section we then call `Get(pagIndex, pageSize)` method from the controller which should provide us paginated result. In the last section we unwrap the result and validate if the object returned is the one we passed from the repository mock.
+	1. Open *Test Explorer* window and run that test. It should be *green*. If it's not *green* then make it *green*... 
+	1. Try adding two more tests, one for `Post(...)` and one for `Delete(...)` method. They can be either negative or positive ones. Naming convention does not matter at this point. Here are some code snippets (I hope this helps):
+	 	```csharp
+		mockRepo.Setup(repo => repo.GetAsync(It.IsAny<int>()))
+			.ReturnsAsync((BlogPost)null);
+		mockRepo.Setup(repo => repo.AddAsync(It.IsAny<BlogPost>()))
+                	.ThrowsAsync(new BlogPostsDomainException("Sth"));
+		mockRepo.Setup(repo => repo.AddAsync(It.IsAny<BlogPost>()))
+                	.Returns(Task.CompletedTask).Verifiable();
+		var somePost = new BlogPost { Title = "Some Post", Description = "Dest" };
+		```
+		```csharp
+		var exception = await Record.ExceptionAsync(async () => await controller.Post(somePost));
+		var result = await controller.Post(somePost);
+		var result = await controller.Delete(nonExistingBlogPostId);
+		```
+		```csharp
+		var actionResult = Assert.IsType<ActionResult<BlogPost>>(result);
+            	Assert.IsType<NotFoundResult>(actionResult.Result);
+		Assert.IsType<NotFoundResult>(result);
+		Assert.IsType<BlogPostsDomainException>(exception);
+		var actionResult = Assert.IsType<CreatedAtRouteResult>(result);
+	    	var valueResult = Assert.IsType<BlogPost>(actionResult.Value);
+	    	Assert.Equal(somePost, valueResult);
+	    	mockRepo.Verify();
+		```
+	1. Confirm all three tests are runnable, do not fail and make sense.
