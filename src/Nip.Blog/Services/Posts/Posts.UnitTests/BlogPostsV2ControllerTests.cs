@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;
+using Nip.Blog.Services.Posts.API.Exceptions;
 
 namespace Posts.UnitTests
 {
@@ -81,6 +82,24 @@ namespace Posts.UnitTests
             // Then
             var actionResult = Assert.IsType<ActionResult<BlogPost>>(result);
             Assert.IsType<NotFoundResult>(actionResult.Result);
+        }
+
+        [Fact]
+        public async Task ShouldBubbleExceptionWhenCallingAddAsyncThatThrows()
+        {
+            // Given
+            var mockLogger = new Mock<ILogger<BlogPostsV2Controller>>();
+            var mockRepo = new Mock<IBlogPostRepository>();
+            mockRepo.Setup(repo => repo.AddAsync(It.IsAny<BlogPost>()))
+                .ThrowsAsync(new BlogPostsDomainException("Sth"));
+            var controller = new BlogPostsV2Controller(mockLogger.Object, mockRepo.Object);
+            var somePost = new BlogPost { Title = "Some Post", Description = "Dest" };
+
+            // When
+            var exception = await Record.ExceptionAsync(async () => await controller.Post(somePost));
+
+            // Then
+            Assert.IsType<BlogPostsDomainException>(exception);
         }
 
         [Fact]
